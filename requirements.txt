@@ -5,6 +5,8 @@ jupyter
 tensorflow
 xgboost
 pandas
+seaborn
+sklearn
 
 # local package
 -e .
