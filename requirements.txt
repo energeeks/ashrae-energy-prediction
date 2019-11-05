@@ -1,3 +1,10 @@
+# Standard Packages
+numpy
+matplotlib
+jupyter
+tensorflow
+xgboost
+
 # local package
 -e .
 
