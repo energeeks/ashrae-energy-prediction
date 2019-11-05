@@ -4,6 +4,7 @@ matplotlib
 jupyter
 tensorflow
 xgboost
+pandas
 
 # local package
 -e .
