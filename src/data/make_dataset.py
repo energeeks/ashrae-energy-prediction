@@ -5,6 +5,7 @@ from pathlib import Path
 from dotenv import find_dotenv, load_dotenv
 import pandas as pd
 import numpy as np
+import os
 
 
 def reduce_mem_usage(df, verbose=True):
@@ -80,6 +81,7 @@ def save_joined_data(train_df, test_df, output_filepath):
     """
     Takes the two joined dataframes and stores them for further engineering
     """
+    os.makedirs(output_filepath, exist_ok=True)
     train_df.to_pickle(output_filepath + "/train_data.pkl")
     test_df.to_pickle(output_filepath + "/test_data.pkl")
     click.echo("Data successfully saved in folder: " + output_filepath)
@@ -101,6 +103,9 @@ def main(input_filepath, output_filepath):
     click.echo("Reducing memory allocation of dataframes...")
     train_df = reduce_mem_usage(train_df)
     test_df = reduce_mem_usage(test_df)
+
+    train_df["timestamp"] = pd.to_datetime(train_df["timestamp"])
+    test_df["timestamp"] = pd.to_datetime(test_df["timestamp"])
 
     # <TODO>
     # FUNCTIONS FOR CLEANSING THE DATA COME HERE
