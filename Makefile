@@ -27,7 +27,11 @@ requirements: test_environment
 
 ## Make Dataset
 data: requirements
-	$(PYTHON_INTERPRETER) src/data/make_dataset.py data/raw data/processed
+	$(PYTHON_INTERPRETER) src/data/make_dataset.py data/raw data/interim
+
+## Make Features
+features:
+	$(PYTHON_INTERPRETER) src/features/build_features.py data/interim data/processed
 
 ## Delete all compiled Python files
 clean:
