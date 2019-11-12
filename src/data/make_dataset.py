@@ -5,6 +5,64 @@ from pathlib import Path
 from dotenv import find_dotenv, load_dotenv
 import pandas as pd
 import numpy as np
+import os
+
+
+@click.command()
+@click.argument('input_filepath', type=click.Path(exists=True))
+@click.argument('output_filepath', type=click.Path())
+def main(input_filepath, output_filepath):
+    """ Runs data processing scripts to turn raw data from (../raw) into
+        cleaned data ready for feature engineering (saved in ../interim).
+    """
+    logger = logging.getLogger(__name__)
+    logger.info('making final data set from raw data')
+
+    click.echo("Starting data loader...")
+    train_df, test_df = load_raw_data(input_filepath)
+
+    click.echo("Reducing memory allocation of dataframes...")
+    train_df = reduce_mem_usage(train_df)
+    test_df = reduce_mem_usage(test_df)
+
+    click.echo("Changing column types...")
+    train_df = adjust_column_types(train_df)
+    test_df = adjust_column_types(test_df)
+
+    # <TODO>
+    # FUNCTIONS FOR CLEANSING THE DATA COME HERE
+    # --> LOGIC CLEANSING
+    # --> HANDLE NANS
+
+    click.echo("Saving cleansed data...")
+    save_joined_data(train_df, test_df, output_filepath)
+
+
+def load_raw_data(input_filepath):
+    """
+    Loads data from .csv files and performs necessary joins. Function returns
+    the training as well as the test set.
+    """
+
+    click.echo("Loading csv files to memory...")
+    building_df = pd.read_csv(input_filepath + "/building_metadata.csv")
+    weather_train = pd.read_csv(input_filepath + "/weather_train.csv")
+    train_df = pd.read_csv(input_filepath + "/train.csv")
+    weather_test = pd.read_csv(input_filepath + "/weather_test.csv")
+    test_df = pd.read_csv(input_filepath + "/test.csv")
+
+    click.echo("Performing join operations...")
+    train_df = train_df.merge(building_df, left_on="building_id",
+                              right_on="building_id", how="left")
+    train_df = train_df.merge(weather_train, left_on=["site_id", "timestamp"],
+                              right_on=["site_id", "timestamp"])
+    test_df = test_df.merge(building_df, left_on="building_id",
+                            right_on="building_id", how="left")
+    test_df = test_df.merge(weather_test, left_on=["site_id", "timestamp"],
+                            right_on=["site_id", "timestamp"])
+
+    click.echo("Load successful!")
+    return train_df, test_df
 
 
 def reduce_mem_usage(df, verbose=True):
@@ -49,66 +107,22 @@ def reduce_mem_usage(df, verbose=True):
     return df
 
 
-def load_raw_data(input_filepath):
+def adjust_column_types(data_frame):
     """
-    Loads data from .csv files and performs necessary joins. Function returns
-    the training as well as the test set.
+    Takes a data frame and parses certain columns to the desired type.
     """
-
-    click.echo("Loading csv files to memory...")
-    building_df = pd.read_csv(input_filepath + "/building_metadata.csv")
-    weather_train = pd.read_csv(input_filepath + "/weather_train.csv")
-    train_df = pd.read_csv(input_filepath + "/train.csv")
-    weather_test = pd.read_csv(input_filepath + "/weather_test.csv")
-    test_df = pd.read_csv(input_filepath + "/test.csv")
-
-    click.echo("Performing join operations...")
-    train_df = train_df.merge(building_df, left_on="building_id",
-                              right_on="building_id", how="left")
-    train_df = train_df.merge(weather_train, left_on=["site_id", "timestamp"],
-                              right_on=["site_id", "timestamp"])
-    test_df = test_df.merge(building_df, left_on="building_id",
-                            right_on="building_id", how="left")
-    test_df = test_df.merge(weather_test, left_on=["site_id", "timestamp"],
-                            right_on=["site_id", "timestamp"])
-
-    click.echo("Load successful!")
-    return train_df, test_df
+    data_frame["timestamp"] = pd.to_datetime(data_frame["timestamp"])
+    return data_frame
 
 
 def save_joined_data(train_df, test_df, output_filepath):
     """
     Takes the two joined dataframes and stores them for further engineering
     """
+    os.makedirs(output_filepath, exist_ok=True)
     train_df.to_pickle(output_filepath + "/train_data.pkl")
     test_df.to_pickle(output_filepath + "/test_data.pkl")
     click.echo("Data successfully saved in folder: " + output_filepath)
-
-
-@click.command()
-@click.argument('input_filepath', type=click.Path(exists=True))
-@click.argument('output_filepath', type=click.Path())
-def main(input_filepath, output_filepath):
-    """ Runs data processing scripts to turn raw data from (../raw) into
-        cleaned data ready for feature engineering (saved in ../interim).
-    """
-    logger = logging.getLogger(__name__)
-    logger.info('making final data set from raw data')
-
-    click.echo("Starting data loader...")
-    train_df, test_df = load_raw_data(input_filepath)
-
-    click.echo("Reducing memory allocation of dataframes...")
-    train_df = reduce_mem_usage(train_df)
-    test_df = reduce_mem_usage(test_df)
-
-    # <TODO>
-    # FUNCTIONS FOR CLEANSING THE DATA COME HERE
-    # --> LOGIC CLEANSING
-    # --> HANDLE NANS
-
-    click.echo("Saving cleansed data...")
-    save_joined_data(train_df, test_df, output_filepath)
 
 
 if __name__ == '__main__':

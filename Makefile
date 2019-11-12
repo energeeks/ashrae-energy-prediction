@@ -33,6 +33,19 @@ data: requirements
 features:
 	$(PYTHON_INTERPRETER) src/features/build_features.py data/interim data/processed
 
+## Make Train
+train:
+ifeq (xgb,$(MODEL))
+	$(PYTHON_INTERPRETER) src/models/train_xgb_model.py data/processed models/xgb
+else
+	@echo "Please define MODEL variable"
+endif
+
+## Make Prediction
+predict:
+	$(PYTHON_INTERPRETER) src/models/predict_model.py data/processed $(MODEL) $(MODEL_PATH)
+
+
 ## Delete all compiled Python files
 clean:
 	find . -type f -name "*.py[co]" -delete
