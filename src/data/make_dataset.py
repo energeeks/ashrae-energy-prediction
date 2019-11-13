@@ -55,11 +55,11 @@ def load_raw_data(input_filepath):
     train_df = train_df.merge(building_df, left_on="building_id",
                               right_on="building_id", how="left")
     train_df = train_df.merge(weather_train, left_on=["site_id", "timestamp"],
-                              right_on=["site_id", "timestamp"])
+                              right_on=["site_id", "timestamp"], how="left")
     test_df = test_df.merge(building_df, left_on="building_id",
                             right_on="building_id", how="left")
     test_df = test_df.merge(weather_test, left_on=["site_id", "timestamp"],
-                            right_on=["site_id", "timestamp"])
+                            right_on=["site_id", "timestamp"], how="left")
 
     click.echo("Load successful!")
     return train_df, test_df
