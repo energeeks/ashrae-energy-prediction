@@ -52,7 +52,7 @@ def load_processed_training_data(input_filepath):
     Loads processed data and returns a xgb Matrix with distinguished label
     column.
     """
-    train_df = pd.read_pickle(input_filepath + "/train_data.csv")
+    train_df = pd.read_pickle(input_filepath + "/train_data.pkl")
 
     label = np.log1p(train_df["meter_reading"])
     del train_df["meter_reading"]
@@ -148,7 +148,7 @@ def evaluate_xgb_cv_results(cv_results):
     files_in_dir = os.listdir(csv_path)
     max_version = max([int(file[:4]) for file in files_in_dir], default=0)
     new_version = str(max_version + 1).zfill(4)
-    summary.to_csv(csv_path + "/" + new_version + ".pkl")
+    summary.to_csv(csv_path + "/" + new_version + ".csv")
 
 
 if __name__ == '__main__':
