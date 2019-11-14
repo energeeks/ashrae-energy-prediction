@@ -24,13 +24,14 @@ def main(mode, input_filepath, output_filepath):
 
     params = {
         "objective": "reg:squarederror",
+        "tree_method": "exact",
         "eval_metric": "rmse",
         "booster": "gbtree",
         "verbosity": "1",
     }
 
-    num_boost_round = 100
-    early_stopping_rounds = 10
+    num_boost_round = 5
+    early_stopping_rounds = 2
 
     ###########################################################################
 
@@ -51,7 +52,7 @@ def load_processed_training_data(input_filepath):
     Loads processed data and returns a xgb Matrix with distinguished label
     column.
     """
-    train_df = pd.read_pickle(input_filepath + "/train_data.pkl")
+    train_df = pd.read_pickle(input_filepath + "/train_data.csv")
 
     label = np.log1p(train_df["meter_reading"])
     del train_df["meter_reading"]
@@ -93,11 +94,11 @@ def save_model(output_filepath, model):
 def start_cv_run(train_df, label, params, num_boost_round, early_stopping_rounds):
     cv_results = []
     splits = 5
-    click.echo("Starting " + splits + " fold cross-validation...")
+    click.echo("Starting " + str(splits) + " fold cross-validation...")
     kf = KFold(n_splits=splits, shuffle=True, random_state=1337)
     for i, (train_index, test_index) in enumerate(kf.split(train_df, label)):
         click.echo(("~~~~ Fold %d of %d ~~~~" % (i + 1, splits)))
-        x_train, x_valid = train_df[train_index], train_df[test_index]
+        x_train, x_valid = train_df.iloc[train_index], train_df.iloc[test_index]
         y_train, y_valid = label[train_index], label[test_index]
 
         train_dmatrix = xgb.DMatrix(x_train, y_train)
@@ -136,6 +137,10 @@ def evaluate_xgb_cv_results(cv_results):
         summary["fold"].append(i)
         summary["eval_loss"].append(eval_loss)
         summary["train_loss"].append(train_loss)
+
+    avg_eval_loss = sum(summary["eval_loss"]) / len(summary["eval_loss"])
+    avg_train_loss = sum(summary["train_loss"]) / len(summary["train_loss"])
+    print("Average Eval Loss:\t{1:.3f}\t|\nAverage Train Loss:\t{2:.3f}".format(avg_eval_loss, avg_train_loss))
 
     summary = pd.DataFrame.from_dict(summary)
     csv_path = "models/xgb_cv"

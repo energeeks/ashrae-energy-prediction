@@ -4,6 +4,7 @@ import pandas as pd
 import xgboost as xgb
 import numpy as np
 
+
 @click.command()
 @click.argument('input_filepath', type=click.Path(exists=True))
 @click.argument('model_type')
