@@ -104,8 +104,8 @@ def start_cv_run(train_df, label, params, num_boost_round, early_stopping_rounds
         train_dmatrix = xgb.DMatrix(x_train, y_train)
         valid_dmatrix = xgb.DMatrix(x_valid, y_valid)
 
-        evals = [(valid_dmatrix, 'eval'), (train_dmatrix, 'train_loss')]
-        verbose_eval = 10
+        evals = [(train_dmatrix, 'train_loss'), (valid_dmatrix, 'eval')]
+        verbose_eval = True
         evals_result = dict()
         xgb_model = xgb.train(params=params,
                               dtrain=train_dmatrix,
@@ -115,7 +115,7 @@ def start_cv_run(train_df, label, params, num_boost_round, early_stopping_rounds
                               evals_result=evals_result,
                               early_stopping_rounds=early_stopping_rounds)
         cv_results.append(evals_result)
-        evaluate_xgb_cv_results(cv_results)
+    evaluate_xgb_cv_results(cv_results)
 
 
 def evaluate_xgb_cv_results(cv_results):
@@ -140,7 +140,7 @@ def evaluate_xgb_cv_results(cv_results):
 
     avg_eval_loss = sum(summary["eval_loss"]) / len(summary["eval_loss"])
     avg_train_loss = sum(summary["train_loss"]) / len(summary["train_loss"])
-    print("Average Eval Loss:\t{1:.3f}\t|\nAverage Train Loss:\t{2:.3f}".format(avg_eval_loss, avg_train_loss))
+    print("Average Eval Loss:\t{0:.3f}\nAverage Train Loss:\t{1:.3f}".format(avg_eval_loss, avg_train_loss))
 
     summary = pd.DataFrame.from_dict(summary)
     csv_path = "models/xgb_cv"
