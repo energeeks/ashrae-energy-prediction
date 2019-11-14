@@ -2,7 +2,7 @@ import os
 import click
 import pandas as pd
 import xgboost as xgb
-
+import numpy as np
 
 @click.command()
 @click.argument('input_filepath', type=click.Path(exists=True))
@@ -21,6 +21,8 @@ def main(input_filepath, model_type, model_path):
 
     if model_type == "xgb":
         predictions = predict_with_xgb(test_df, model_path)
+        predictions = np.expm1(predictions)
+        predictions[predictions < 0] = 0
     else:
         raise ValueError(model_type + " is not a valid model type to predict from")
 
