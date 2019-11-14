@@ -15,7 +15,6 @@ def main(input_filepath, output_filepath):
     """
     # <TODO>
     # ALL FEATURE ENGINEERING GOES IN HERE
-    # OUTPUT COULD BE TWO SETS (ONE FOR BOOSTING, OTHER FOR NN)
 
     click.echo("Loading interim data...")
     train_df, test_df = load_interim_data(input_filepath)
@@ -86,7 +85,7 @@ def encode_wind_direction(data_frame):
     data_frame["wind_direction_cos"] = np.cos(2 * np.pi * data_frame["wind_direction"] / 360)
     data_frame.loc[data_frame["wind_direction"].isna(), ["wind_direction_sin", "wind_direction_cos"]] = 0
     data_frame.loc[data_frame["wind_speed"] == 0, ["wind_direction_sin", "wind_direction_cos"]] = 0
-    data_frame.drop(columns=["wind_direction"])
+    del data_frame["wind_direction"]
     return data_frame
 
 
