@@ -16,13 +16,6 @@ def main(input_filepath, model_type, model_path):
     click.echo("Loading testing data...")
     test_df = pd.read_pickle(input_filepath + "/test_data.pkl")
 
-    ####!!!!!!!!!!!!!!!!!!!!!!!!!!!!####
-    ### IMPORTANT ######################
-    # I'm taking only few of the test values for testing and until the
-    # RAM issues are gone
-    ####################################
-    test_df = test_df.sample(n=100)
-
     row_ids = test_df["row_id"]
     del test_df["row_id"]
 

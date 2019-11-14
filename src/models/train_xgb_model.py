@@ -52,13 +52,6 @@ def load_processed_training_data(input_filepath):
     """
     train_df = pd.read_pickle(input_filepath + "/train_data.pkl")
 
-    ####!!!!!!!!!!!!!!!!!!!!!!!!!!!!####
-    ### IMPORTANT ######################
-    # I'm taking only half of the training values for testing and until the
-    # RAM issues are gone
-    ####################################
-    train_df = train_df.sample(n=len(train_df)//2)
-
     y_train = train_df["meter_reading"]
     del train_df["meter_reading"]
 
