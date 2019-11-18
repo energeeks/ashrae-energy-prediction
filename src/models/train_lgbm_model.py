@@ -29,7 +29,8 @@ def main(mode, input_filepath, output_filepath):
         "learning_rate": 0.05,
         "feature_fraction": 0.85,
         "reg_lambda": 2,
-        "metric": "rmse"
+        "metric": "rmse",
+        "verbosity": -1
     }
 
     num_boost_round = 5
@@ -96,6 +97,11 @@ def save_model(output_filepath, model):
 
 def start_cv_run(train_df, label, params,
                  num_boost_round, early_stopping_rounds, output_filepath):
+    """
+    Starts a Cross Validation Run with the parameters provided.
+    Scores will be documented and models will be saved.
+    """
+    output_filepath = output_filepath + "_cv"
     cv_results = []
     splits = 2
     click.echo("Starting " + str(splits) + " fold cross-validation...")
@@ -119,7 +125,6 @@ def start_cv_run(train_df, label, params,
                                verbose_eval=verbose_eval,
                                evals_result=evals_result,
                                early_stopping_rounds=early_stopping_rounds)
-        output_filepath = output_filepath + "_cv"
         save_model(output_filepath, lgbm_model)
 
         cv_results.append(evals_result)
