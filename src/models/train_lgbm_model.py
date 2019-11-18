@@ -21,7 +21,6 @@ def main(mode, input_filepath, output_filepath):
     ###########################################################################
     # DEFINE PARAMETERS FOR THE LGBM MODEL                                     #
     ###########################################################################
-    categorical_features = ["building_id", "site_id", "meter", "primary_use"]
 
     params = {
         "objective": "regression",
@@ -39,12 +38,12 @@ def main(mode, input_filepath, output_filepath):
     ###########################################################################
 
     if mode == "full":
-        start_full_training_run(train_df, label, categorical_features, params,
+        start_full_training_run(train_df, label, params,
                                 num_boost_round, early_stopping_rounds,
                                 output_filepath)
 
     elif mode == "cv":
-        start_cv_run(train_df, label, categorical_features, params,
+        start_cv_run(train_df, label, params,
                      num_boost_round, early_stopping_rounds, output_filepath)
 
     else:
@@ -64,14 +63,13 @@ def load_processed_training_data(input_filepath):
     return train_df, label
 
 
-def start_full_training_run(train_df, label, categorical_features, params,
+def start_full_training_run(train_df, label, params,
                             num_boost_round, early_stopping_rounds, output_filepath):
     """"
     Starts a full training run with the provided parameters.
     """
     click.echo("Building model and start training...")
-    train_lgb_df = lgb.Dataset(data=train_df, label=label,
-                               categorical_feature=categorical_features)
+    train_lgb_df = lgb.Dataset(data=train_df, label=label)
     verbose_eval = 25
     valid_sets = [train_lgb_df]
     lgbm_model = lgb.train(params=params,
@@ -96,7 +94,7 @@ def save_model(output_filepath, model):
     click.echo("Model successfully saved in folder: " + output_filepath)
 
 
-def start_cv_run(train_df, label, categorical_features, params,
+def start_cv_run(train_df, label, params,
                  num_boost_round, early_stopping_rounds, output_filepath):
     cv_results = []
     splits = 2
@@ -107,10 +105,8 @@ def start_cv_run(train_df, label, categorical_features, params,
         x_train, x_valid = train_df.iloc[train_index], train_df.iloc[test_index]
         y_train, y_valid = label[train_index], label[test_index]
 
-        train_lgb_df = lgb.Dataset(data=x_train, label=y_train,
-                                   categorical_feature=categorical_features)
-        valid_lgb_df = lgb.Dataset(data=x_valid, label=y_valid,
-                                   categorical_feature=categorical_features)
+        train_lgb_df = lgb.Dataset(data=x_train, label=y_train)
+        valid_lgb_df = lgb.Dataset(data=x_valid, label=y_valid)
 
         valid_sets = [train_lgb_df, valid_lgb_df]
         verbose_eval = True
@@ -119,6 +115,7 @@ def start_cv_run(train_df, label, categorical_features, params,
                                train_set=train_lgb_df,
                                num_boost_round=num_boost_round,
                                valid_sets=valid_sets,
+                               valid_names=["train_loss", "eval"],
                                verbose_eval=verbose_eval,
                                evals_result=evals_result,
                                early_stopping_rounds=early_stopping_rounds)

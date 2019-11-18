@@ -31,10 +31,6 @@ def main(input_filepath, output_filepath):
     train_df = encode_wind_direction(train_df)
     test_df = encode_wind_direction(test_df)
 
-    click.echo("Encoding primary_use feature...")
-    train_df = encode_primary_use(train_df)
-    test_df = encode_primary_use(test_df)
-
     click.echo("Ensuring integrity of data...")
     # <TODO>
     # COLUMN CHECKS ALSO COME HERE
@@ -57,9 +53,15 @@ def load_interim_data(input_filepath):
 
 def encode_categorical_data(data_frame):
     """
-    Encodes categorical data using one hot encoding
+    Sets a fitting format for categorical data
     """
-    return pd.get_dummies(data_frame, columns=["meter", "primary_use"])
+    # return pd.get_dummies(data_frame, columns=["meter", "primary_use"])
+    data_frame["primary_use"] = LabelEncoder().fit_transform(data_frame["primary_use"])
+    data_frame["primary_use"] = pd.Categorical(data_frame["primary_use"])
+    data_frame["building_id"] = pd.Categorical(data_frame["building_id"])
+    data_frame["site_id"] = pd.Categorical(data_frame["site_id"])
+    data_frame["meter"] = pd.Categorical(data_frame["meter"])
+    return data_frame
 
 
 def encode_timestamp(data_frame):
@@ -91,10 +93,6 @@ def encode_wind_direction(data_frame):
     data_frame.loc[data_frame["wind_speed"] == 0, ["wind_direction_sin", "wind_direction_cos"]] = 0
     del data_frame["wind_direction"]
     return data_frame
-
-
-def encode_primary_use(data_frame):
-    data_frame["primary_use"] = LabelEncoder().fit_transform(data_frame["primary_use"])
 
 
 def save_processed_data(output_filepath, train_df, test_df):
