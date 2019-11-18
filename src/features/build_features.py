@@ -1,8 +1,8 @@
 import os
-
 import click
 import numpy as np
 import pandas as pd
+from sklearn.preprocessing import LabelEncoder
 
 
 @click.command()
@@ -30,6 +30,10 @@ def main(input_filepath, output_filepath):
     click.echo("Encoding wind_direction features...")
     train_df = encode_wind_direction(train_df)
     test_df = encode_wind_direction(test_df)
+
+    click.echo("Encoding primary_use feature...")
+    train_df = encode_primary_use(train_df)
+    test_df = encode_primary_use(test_df)
 
     click.echo("Ensuring integrity of data...")
     # <TODO>
@@ -87,6 +91,10 @@ def encode_wind_direction(data_frame):
     data_frame.loc[data_frame["wind_speed"] == 0, ["wind_direction_sin", "wind_direction_cos"]] = 0
     del data_frame["wind_direction"]
     return data_frame
+
+
+def encode_primary_use(data_frame):
+    data_frame["primary_use"] = LabelEncoder().fit_transform(data_frame["primary_use"])
 
 
 def save_processed_data(output_filepath, train_df, test_df):

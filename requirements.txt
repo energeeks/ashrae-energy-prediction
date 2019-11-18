@@ -8,6 +8,7 @@ pandas
 seaborn
 sklearn
 kaggle
+lightgbm
 
 # local package
 -e .
