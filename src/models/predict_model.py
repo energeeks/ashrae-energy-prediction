@@ -99,10 +99,9 @@ def predict_with_lgbm_meter(test_df, row_ids, model_filepath):
 
     click.echo("Loading models in directory" + model_filepath + "...")
     models_in_dir = os.listdir(model_filepath)
-    predictions = np.zeros(len(row_ids))
     test_by_meter = []
     row_id_by_meter = []
-    for i in range(1, 5):
+    for i in range(4):
         is_meter = test_df["meter"] == i
         test_temp = test_df[is_meter]
         row_temp = row_ids[is_meter]
@@ -111,10 +110,11 @@ def predict_with_lgbm_meter(test_df, row_ids, model_filepath):
 
     predictions = []
     row_ids_prediction = []
+    click.echo("Predicting values...")
     for model, test, row in zip(models_in_dir, test_by_meter, row_id_by_meter):
+        del test["meter"]
         lgbm_model = lgb.Booster(model_file=model_filepath + "/" + model)
 
-        click.echo("[" + str(i) + "/" + "4] Predicting values...")
         predictions_current = lgbm_model.predict(test)
         predictions.extend(list(np.expm1(predictions_current)))
         row_ids_prediction.extend(row)
@@ -124,7 +124,7 @@ def predict_with_lgbm_meter(test_df, row_ids, model_filepath):
     row_ids_df = pd.DataFrame({"true_row_ids": row_ids})
     pred_ordered_df = row_ids_df.merge(pred_df, left_on="true_row_ids",
                                        right_on="row_id", how="left")
-    predictions = pred_ordered_df["pred"]
+    predictions = pred_ordered_df["pred"].copy(deep=True)
     predictions[predictions < 0] = 0
     return predictions
 

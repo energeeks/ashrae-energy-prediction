@@ -92,7 +92,7 @@ def start_full_by_meter_run(train_df, label, params, num_boost_round,
     output_filepath = output_filepath + "_by_meter"
     train_by_meter = []
     label_by_meter = []
-    for i in range(1, 5):
+    for i in range(4):
         is_meter = train_df["meter"] == i
         train_temp = train_df[is_meter]
         label_temp = label[is_meter]
