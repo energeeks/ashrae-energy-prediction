@@ -36,7 +36,7 @@ features:
 ## Make Train
 train:
 ifeq (xgb,$(MODEL))
-	$(PYTHON_INTERPRETER) src/models/train_xgb_model.py data/processed models/xgb
+	$(PYTHON_INTERPRETER) src/models/train_xgb_model.py $(MODE) data/processed models/xgb
 else
 	@echo "Please define MODEL variable"
 endif
