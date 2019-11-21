@@ -1,6 +1,7 @@
 import os
 import click
 import pandas as pd
+import random
 import numpy as np
 import lightgbm as lgb
 from sklearn.model_selection import KFold
@@ -15,9 +16,10 @@ def main(mode, input_filepath, output_filepath):
     Collects prepared data and starts training an LightGBM model. Parameters
     can be specified by editing the main function of .py file
     """
+    random.seed(1337)
     click.echo("Loading processed training data...")
     train_df, label = load_processed_training_data(input_filepath)
-
+    
     ###########################################################################
     # DEFINE PARAMETERS FOR THE LGBM MODEL                                     #
     ###########################################################################
