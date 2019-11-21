@@ -98,7 +98,7 @@ def predict_with_lgbm_meter(test_df, row_ids, model_filepath):
     """
 
     click.echo("Loading models in directory" + model_filepath + "...")
-    models_in_dir = os.listdir(model_filepath)
+    models_in_dir = sorted(os.listdir(model_filepath))
     test_by_meter = []
     row_id_by_meter = []
     for i in range(4):
