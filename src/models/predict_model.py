@@ -29,7 +29,7 @@ def main(input_filepath, model_type, model_path):
 
     elif model_type == "lgbm_meter":
         predictions = predict_with_lgbm_meter(test_df, row_ids, model_path)
-
+        
     else:
         raise ValueError(model_type + " is not a valid model type to predict from")
 
