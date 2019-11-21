@@ -53,7 +53,6 @@ def load_processed_training_data(input_filepath):
     column.
     """
     train_df = pd.read_pickle(input_filepath + "/train_data.pkl")
-
     label = np.log1p(train_df["meter_reading"])
     del train_df["meter_reading"]
 

@@ -37,8 +37,9 @@ features:
 train:
 ifeq (xgb,$(MODEL))
 	$(PYTHON_INTERPRETER) src/models/train_xgb_model.py $(MODE) data/processed models/xgb
-else
-	@echo "Please define MODEL variable"
+endif
+ifeq (lgbm,$(MODEL))
+	$(PYTHON_INTERPRETER) src/models/train_lgbm_model.py $(MODE) data/processed models/lgbm
 endif
 
 ## Make Prediction

@@ -1,8 +1,8 @@
 import os
-
 import click
 import numpy as np
 import pandas as pd
+from sklearn.preprocessing import LabelEncoder
 
 
 @click.command()
@@ -24,18 +24,36 @@ def main(input_filepath, output_filepath):
     test_df = encode_categorical_data(test_df)
 
     click.echo("Encoding timestamp features...")
-    train_df = encode_timestamp(train_df)
-    test_df = encode_timestamp(test_df)
+    train_df = encode_timestamp(train_df, circular=False)
+    test_df = encode_timestamp(test_df, circular=False)
 
-    click.echo("Encoding wind_direction features...")
-    train_df = encode_wind_direction(train_df)
-    test_df = encode_wind_direction(test_df)
+    click.echo("Taking the log of selected features...")
+    train_df["square_feet"] = np.log1p(train_df["square_feet"])
+    test_df["square_feet"] = np.log1p(test_df["square_feet"])
 
-    click.echo("Ensuring integrity of data...")
+    click.echo("Calculating age of buildings")
+    train_df = calculate_age_of_building(train_df)
+    test_df = calculate_age_of_building(test_df)
+
+    #click.echo("Encoding wind_direction features...")
+    #train_df = encode_wind_direction(train_df)
+    #test_df = encode_wind_direction(test_df)
+
+    #click.echo("Ensuring integrity of data...")
     # <TODO>
     # COLUMN CHECKS ALSO COME HERE
-    train_df.fillna(0)
-    test_df.fillna(0)
+
+    # Not necessary for LGBM hence currently disabled
+    # train_df.fillna(0)
+    # test_df.fillna(0)
+
+    click.echo("Sort training set...")
+    train_df.sort_values("timestamp", inplace=True)
+    train_df.reset_index(drop=True, inplace=True)
+
+    click.echo("Dropping specified columns...")
+    train_df = drop_columns(train_df)
+    test_df = drop_columns(test_df)
 
     click.echo("Save processed data...")
     save_processed_data(output_filepath, train_df, test_df)
@@ -53,26 +71,41 @@ def load_interim_data(input_filepath):
 
 def encode_categorical_data(data_frame):
     """
-    Encodes categorical data using one hot encoding
+    Sets a fitting format for categorical data
     """
-    return pd.get_dummies(data_frame, columns=["meter", "primary_use"])
+    # return pd.get_dummies(data_frame, columns=["meter", "primary_use"])
+    data_frame["primary_use"] = LabelEncoder().fit_transform(data_frame["primary_use"])
+    data_frame["primary_use"] = pd.Categorical(data_frame["primary_use"])
+    data_frame["building_id"] = pd.Categorical(data_frame["building_id"])
+    data_frame["site_id"] = pd.Categorical(data_frame["site_id"])
+    data_frame["meter"] = pd.Categorical(data_frame["meter"])
+    return data_frame
 
 
-def encode_timestamp(data_frame):
+def encode_timestamp(data_frame, circular=False):
     """
     Extracts time based features out of the timestamp column. In particular the
     time of the day, weekday and day of the year were being chosen. Due to the
-    repetitive nature of time features a cyclic encoding has been chosen.
+    repetitive nature of time features a cyclic encoding can been chosen.
     """
     timestamp = data_frame["timestamp"]
-    timestamp_seconds_of_day = (timestamp.dt.hour * 60 + timestamp.dt.minute) * 60 + timestamp.dt.second
-    data_frame["timeofday_sin"] = np.sin(2 * np.pi * timestamp_seconds_of_day / 86400)
-    data_frame["timeofday_cos"] = np.cos(2 * np.pi * timestamp_seconds_of_day / 86400)
-    data_frame["dayofweek_sin"] = np.sin(2 * np.pi * timestamp.dt.dayofweek / 7)
-    data_frame["dayofweek_cos"] = np.cos(2 * np.pi * timestamp.dt.dayofweek / 7)
-    data_frame["dayofyear_sin"] = np.sin(2 * np.pi * timestamp.dt.dayofyear / 366)
-    data_frame["dayofyear_cos"] = np.cos(2 * np.pi * timestamp.dt.dayofyear / 366)
-    del data_frame["timestamp"]
+    if circular:
+        timestamp_seconds_of_day = (timestamp.dt.hour * 60 + timestamp.dt.minute) * 60 + timestamp.dt.second
+        data_frame["timeofday_sin"] = np.sin(2 * np.pi * timestamp_seconds_of_day / 86400)
+        data_frame["timeofday_cos"] = np.cos(2 * np.pi * timestamp_seconds_of_day / 86400)
+        data_frame["dayofweek_sin"] = np.sin(2 * np.pi * timestamp.dt.dayofweek / 7)
+        data_frame["dayofweek_cos"] = np.cos(2 * np.pi * timestamp.dt.dayofweek / 7)
+        data_frame["dayofyear_sin"] = np.sin(2 * np.pi * timestamp.dt.dayofyear / 366)
+        data_frame["dayofyear_cos"] = np.cos(2 * np.pi * timestamp.dt.dayofyear / 366)
+    else:
+        data_frame["hour"] = pd.Categorical(timestamp.dt.hour)
+        data_frame["weekday"] = pd.Categorical(timestamp.dt.dayofweek)
+        data_frame["month"] = pd.Categorical(timestamp.dt.month)
+    return data_frame
+
+
+def calculate_age_of_building(data_frame):
+    data_frame["year_built"] = 2019 - data_frame["year_built"]
     return data_frame
 
 
@@ -85,7 +118,15 @@ def encode_wind_direction(data_frame):
     data_frame["wind_direction_cos"] = np.cos(2 * np.pi * data_frame["wind_direction"] / 360)
     data_frame.loc[data_frame["wind_direction"].isna(), ["wind_direction_sin", "wind_direction_cos"]] = 0
     data_frame.loc[data_frame["wind_speed"] == 0, ["wind_direction_sin", "wind_direction_cos"]] = 0
-    del data_frame["wind_direction"]
+    return data_frame
+
+
+def drop_columns(data_frame):
+    drop = ["timestamp",
+            "sea_level_pressure",
+            "wind_direction",
+            "wind_speed"]
+    data_frame.drop(columns=drop, inplace=True)
     return data_frame
 
 
