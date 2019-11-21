@@ -1,9 +1,12 @@
 import os
+
 import click
-import pandas as pd
-import xgboost as xgb
 import lightgbm as lgb
 import numpy as np
+import pandas as pd
+import xgboost as xgb
+
+from src.timer import timer
 
 
 @click.command()
@@ -15,8 +18,8 @@ def main(input_filepath, model_type, model_path):
     Loads a trained model and testing data to create a submission file which is
     ready for uploading.
     """
-    click.echo("Loading testing data...")
-    test_df = pd.read_pickle(input_filepath + "/test_data.pkl")
+    with timer("Loading testing data"):
+        test_df = pd.read_pickle(input_filepath + "/test_data.pkl")
 
     row_ids = test_df["row_id"]
     del test_df["row_id"]
@@ -29,12 +32,12 @@ def main(input_filepath, model_type, model_path):
 
     elif model_type == "lgbm_meter":
         predictions = predict_with_lgbm_meter(test_df, row_ids, model_path)
-        
+
     else:
         raise ValueError(model_type + " is not a valid model type to predict from")
 
-    click.echo("Creating submission file...")
-    create_submission_file(row_ids, predictions)
+    with timer("Creating submission file"):
+        create_submission_file(row_ids, predictions)
 
 
 def predict_with_xgb(test_df, model_filepath):
@@ -45,15 +48,15 @@ def predict_with_xgb(test_df, model_filepath):
     test_dmatrix = xgb.DMatrix(test_df)
     del test_df
 
-    click.echo("Loading model " + model_filepath + "...")
-    xgb_model = xgb.Booster()
-    xgb_model.load_model(model_filepath)
+    with timer("Loading model " + model_filepath):
+        xgb_model = xgb.Booster()
+        xgb_model.load_model(model_filepath)
 
-    click.echo("Predicting values...")
-    predictions = xgb_model.predict(test_dmatrix)
-    # Invert log and set possible neg. values to 0
-    predictions = np.expm1(predictions)
-    predictions[predictions < 0] = 0
+    with timer("Predicting values"):
+        predictions = xgb_model.predict(test_dmatrix)
+        # Invert log and set possible neg. values to 0
+        predictions = np.expm1(predictions)
+        predictions[predictions < 0] = 0
     return predictions
 
 
@@ -63,30 +66,31 @@ def predict_with_lgbm(test_df, row_ids, model_filepath):
     returned as list.
     """
     if os.path.isdir(model_filepath):
-        click.echo("Loading models in directory" + model_filepath + "...")
+        click.echo("Loading models in directory" + model_filepath)
         models_in_dir = os.listdir(model_filepath)
         num_models = len(models_in_dir)
         predictions = np.zeros(len(row_ids))
 
         for i, model in enumerate(models_in_dir, start=1):
-            lgbm_model = lgb.Booster(model_file=model_filepath + "/" + model)
+            with timer("Loading model [" + str(i) + "/" + str(num_models) + "]"):
+                lgbm_model = lgb.Booster(model_file=model_filepath + "/" + model)
 
-            click.echo("[" + str(i) + "/" + str(num_models) + "] Predicting values...")
-            predictions_current = lgbm_model.predict(test_df)
-            predictions += np.expm1(predictions_current)
+            with timer("Predicting values [" + str(i) + "/" + str(num_models) + "]"):
+                predictions_current = lgbm_model.predict(test_df)
+                predictions += np.expm1(predictions_current)
 
         predictions = predictions / num_models
         predictions[predictions < 0] = 0
         return predictions
 
     else:
-        click.echo("Loading model " + model_filepath + "...")
-        lgbm_model = lgb.Booster(model_file=model_filepath)
+        with timer("Loading model " + model_filepath):
+            lgbm_model = lgb.Booster(model_file=model_filepath)
 
-        click.echo("Predicting values...")
-        predictions = lgbm_model.predict(test_df)
-        # Invert log and set possible neg. values to 0
-        predictions = np.expm1(predictions)
+        with timer("Predicting values"):
+            predictions = lgbm_model.predict(test_df)
+            # Invert log and set possible neg. values to 0
+            predictions = np.expm1(predictions)
         predictions[predictions < 0] = 0
         return predictions
 
@@ -97,27 +101,27 @@ def predict_with_lgbm_meter(test_df, row_ids, model_filepath):
     meter type) and then predicts the rows with the respective model
     """
 
-    click.echo("Loading models in directory" + model_filepath + "...")
-    models_in_dir = sorted(os.listdir(model_filepath))
-    test_by_meter = []
-    row_id_by_meter = []
-    for i in range(4):
-        is_meter = test_df["meter"] == i
-        test_temp = test_df[is_meter]
-        row_temp = row_ids[is_meter]
-        test_by_meter.append(test_temp)
-        row_id_by_meter.append(row_temp)
+    with timer("Loading models in directory" + model_filepath):
+        models_in_dir = sorted(os.listdir(model_filepath))
+        test_by_meter = []
+        row_id_by_meter = []
+        for i in range(4):
+            is_meter = test_df["meter"] == i
+            test_temp = test_df[is_meter]
+            row_temp = row_ids[is_meter]
+            test_by_meter.append(test_temp)
+            row_id_by_meter.append(row_temp)
 
     predictions = []
     row_ids_prediction = []
-    click.echo("Predicting values...")
-    for model, test, row in zip(models_in_dir, test_by_meter, row_id_by_meter):
-        del test["meter"]
-        lgbm_model = lgb.Booster(model_file=model_filepath + "/" + model)
+    with timer("Predicting values"):
+        for model, test, row in zip(models_in_dir, test_by_meter, row_id_by_meter):
+            del test["meter"]
+            lgbm_model = lgb.Booster(model_file=model_filepath + "/" + model)
 
-        predictions_current = lgbm_model.predict(test)
-        predictions.extend(list(np.expm1(predictions_current)))
-        row_ids_prediction.extend(row)
+            predictions_current = lgbm_model.predict(test)
+            predictions.extend(list(np.expm1(predictions_current)))
+            row_ids_prediction.extend(row)
 
     # Order the predictions by merging them to the original row ids
     pred_df = pd.DataFrame({"row_id": row_ids_prediction, "pred": predictions})

@@ -1,9 +1,12 @@
 import os
+
 import click
+import numpy as np
 import pandas as pd
 import xgboost as xgb
-import numpy as np
 from sklearn.model_selection import KFold
+
+from src.timer import timer
 
 
 @click.command()
@@ -15,8 +18,8 @@ def main(mode, input_filepath, output_filepath):
     Collects prepared data and starts training an xgb model. Parameters
     can be specified by editing the main function of .py file
     """
-    click.echo("Loading processed training data...")
-    train_df, label = load_processed_training_data(input_filepath)
+    with timer("Loading processed training data"):
+        train_df, label = load_processed_training_data(input_filepath)
 
     ###########################################################################
     # DEFINE PARAMETERS FOR THE XGB MODEL                                     #
@@ -64,18 +67,19 @@ def start_full_training_run(train_df, label, params, num_boost_round,
     """"
     Starts a full training run with the provided parameters.
     """
-    click.echo("Building model and start training...")
-    train_dmatrix = xgb.DMatrix(data=train_df, label=label)
-    evals = [(train_dmatrix, 'eval')]
-    verbose_eval = True
-    xgb_model = xgb.train(params=params,
-                          dtrain=train_dmatrix,
-                          num_boost_round=num_boost_round,
-                          evals=evals,
-                          verbose_eval=verbose_eval,
-                          early_stopping_rounds=early_stopping_rounds)
-    click.echo("Saving trained model...")
-    save_model(output_filepath, xgb_model)
+    with timer("Building model and start training"):
+        train_dmatrix = xgb.DMatrix(data=train_df, label=label)
+        evals = [(train_dmatrix, 'eval')]
+        verbose_eval = True
+        xgb_model = xgb.train(params=params,
+                              dtrain=train_dmatrix,
+                              num_boost_round=num_boost_round,
+                              evals=evals,
+                              verbose_eval=verbose_eval,
+                              early_stopping_rounds=early_stopping_rounds)
+
+    with timer("Saving trained model"):
+        save_model(output_filepath, xgb_model)
 
 
 def save_model(output_filepath, model):
@@ -93,28 +97,28 @@ def save_model(output_filepath, model):
 def start_cv_run(train_df, label, params, num_boost_round, early_stopping_rounds):
     cv_results = []
     splits = 5
-    click.echo("Starting " + str(splits) + " fold cross-validation...")
-    kf = KFold(n_splits=splits, shuffle=True, random_state=1337)
-    for i, (train_index, test_index) in enumerate(kf.split(train_df, label)):
-        click.echo(("~~~~ Fold %d of %d ~~~~" % (i + 1, splits)))
-        x_train, x_valid = train_df.iloc[train_index], train_df.iloc[test_index]
-        y_train, y_valid = label[train_index], label[test_index]
+    with timer("Performing " + str(splits) + " fold cross-validation"):
+        kf = KFold(n_splits=splits, shuffle=True, random_state=1337)
+        for i, (train_index, test_index) in enumerate(kf.split(train_df, label)):
+            with timer("~~~~ Fold %d of %d ~~~~" % (i + 1, splits)):
+                x_train, x_valid = train_df.iloc[train_index], train_df.iloc[test_index]
+                y_train, y_valid = label[train_index], label[test_index]
 
-        train_dmatrix = xgb.DMatrix(x_train, y_train)
-        valid_dmatrix = xgb.DMatrix(x_valid, y_valid)
+                train_dmatrix = xgb.DMatrix(x_train, y_train)
+                valid_dmatrix = xgb.DMatrix(x_valid, y_valid)
 
-        evals = [(train_dmatrix, 'train_loss'), (valid_dmatrix, 'eval')]
-        verbose_eval = True
-        evals_result = dict()
-        xgb_model = xgb.train(params=params,
-                              dtrain=train_dmatrix,
-                              num_boost_round=num_boost_round,
-                              evals=evals,
-                              verbose_eval=verbose_eval,
-                              evals_result=evals_result,
-                              early_stopping_rounds=early_stopping_rounds)
-        cv_results.append(evals_result)
-    evaluate_xgb_cv_results(cv_results)
+                evals = [(train_dmatrix, 'train_loss'), (valid_dmatrix, 'eval')]
+                verbose_eval = True
+                evals_result = dict()
+                xgb_model = xgb.train(params=params,
+                                      dtrain=train_dmatrix,
+                                      num_boost_round=num_boost_round,
+                                      evals=evals,
+                                      verbose_eval=verbose_eval,
+                                      evals_result=evals_result,
+                                      early_stopping_rounds=early_stopping_rounds)
+                cv_results.append(evals_result)
+        evaluate_xgb_cv_results(cv_results)
 
 
 def evaluate_xgb_cv_results(cv_results):

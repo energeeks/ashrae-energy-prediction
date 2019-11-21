@@ -1,8 +1,11 @@
 import os
+
 import click
 import numpy as np
 import pandas as pd
 from sklearn.preprocessing import LabelEncoder
+
+from src.timer import timer
 
 
 @click.command()
@@ -16,30 +19,30 @@ def main(input_filepath, output_filepath):
     # <TODO>
     # ALL FEATURE ENGINEERING GOES IN HERE
 
-    click.echo("Loading interim data...")
-    train_df, test_df = load_interim_data(input_filepath)
+    with timer("Loading interim data"):
+        train_df, test_df = load_interim_data(input_filepath)
 
-    click.echo("Encoding categorical features...")
-    train_df = encode_categorical_data(train_df)
-    test_df = encode_categorical_data(test_df)
+    with timer("Encoding categorical features"):
+        train_df = encode_categorical_data(train_df)
+        test_df = encode_categorical_data(test_df)
 
-    click.echo("Encoding timestamp features...")
-    train_df = encode_timestamp(train_df, circular=False)
-    test_df = encode_timestamp(test_df, circular=False)
+    with timer("Encoding timestamp features"):
+        train_df = encode_timestamp(train_df, circular=False)
+        test_df = encode_timestamp(test_df, circular=False)
 
-    click.echo("Taking the log of selected features...")
-    train_df["square_feet"] = np.log1p(train_df["square_feet"])
-    test_df["square_feet"] = np.log1p(test_df["square_feet"])
+    with timer("Taking the log of selected features"):
+        train_df["square_feet"] = np.log1p(train_df["square_feet"])
+        test_df["square_feet"] = np.log1p(test_df["square_feet"])
 
-    click.echo("Calculating age of buildings")
-    train_df = calculate_age_of_building(train_df)
-    test_df = calculate_age_of_building(test_df)
+    with timer("Calculating age of buildings"):
+        train_df = calculate_age_of_building(train_df)
+        test_df = calculate_age_of_building(test_df)
 
-    #click.echo("Encoding wind_direction features...")
-    #train_df = encode_wind_direction(train_df)
-    #test_df = encode_wind_direction(test_df)
+    # with timer("Encoding wind_direction features"):
+    #     train_df = encode_wind_direction(train_df)
+    #     test_df = encode_wind_direction(test_df)
 
-    #click.echo("Ensuring integrity of data...")
+    # click.echo("Ensuring integrity of data...")
     # <TODO>
     # COLUMN CHECKS ALSO COME HERE
 
@@ -47,16 +50,16 @@ def main(input_filepath, output_filepath):
     # train_df.fillna(0)
     # test_df.fillna(0)
 
-    click.echo("Sort training set...")
-    train_df.sort_values("timestamp", inplace=True)
-    train_df.reset_index(drop=True, inplace=True)
+    with timer("Sort training set"):
+        train_df.sort_values("timestamp", inplace=True)
+        train_df.reset_index(drop=True, inplace=True)
 
-    click.echo("Dropping specified columns...")
-    train_df = drop_columns(train_df)
-    test_df = drop_columns(test_df)
+    with timer("Dropping specified columns"):
+        train_df = drop_columns(train_df)
+        test_df = drop_columns(test_df)
 
-    click.echo("Save processed data...")
-    save_processed_data(output_filepath, train_df, test_df)
+    with timer("Save processed data"):
+        save_processed_data(output_filepath, train_df, test_df)
 
 
 def load_interim_data(input_filepath):

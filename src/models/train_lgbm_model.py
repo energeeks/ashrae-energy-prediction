@@ -1,10 +1,13 @@
 import os
-import click
-import pandas as pd
 import random
-import numpy as np
+
+import click
 import lightgbm as lgb
+import numpy as np
+import pandas as pd
 from sklearn.model_selection import KFold
+
+from src.timer import timer
 
 
 @click.command()
@@ -17,9 +20,9 @@ def main(mode, input_filepath, output_filepath):
     can be specified by editing the main function of .py file
     """
     random.seed(1337)
-    click.echo("Loading processed training data...")
-    train_df, label = load_processed_training_data(input_filepath)
-    
+    with timer("Loading processed training data"):
+        train_df, label = load_processed_training_data(input_filepath)
+
     ###########################################################################
     # DEFINE PARAMETERS FOR THE LGBM MODEL                                     #
     ###########################################################################
@@ -72,18 +75,18 @@ def start_full_training_run(train_df, label, params,
     """"
     Starts a full training run with the provided parameters.
     """
-    click.echo("Building model and start training...")
-    train_lgb_df = lgb.Dataset(data=train_df, label=label)
-    verbose_eval = 25
-    valid_sets = [train_lgb_df]
-    lgbm_model = lgb.train(params=params,
-                           train_set=train_lgb_df,
-                           num_boost_round=num_boost_round,
-                           valid_sets=valid_sets,
-                           verbose_eval=verbose_eval,
-                           early_stopping_rounds=early_stopping_rounds)
-    click.echo("Saving trained model...")
-    save_model(output_filepath, lgbm_model)
+    with timer("Building model and start training"):
+        train_lgb_df = lgb.Dataset(data=train_df, label=label)
+        verbose_eval = 25
+        valid_sets = [train_lgb_df]
+        lgbm_model = lgb.train(params=params,
+                               train_set=train_lgb_df,
+                               num_boost_round=num_boost_round,
+                               valid_sets=valid_sets,
+                               verbose_eval=verbose_eval,
+                               early_stopping_rounds=early_stopping_rounds)
+    with timer("Saving trained model"):
+        save_model(output_filepath, lgbm_model)
 
 
 def start_full_by_meter_run(train_df, label, params, num_boost_round,
@@ -101,20 +104,20 @@ def start_full_by_meter_run(train_df, label, params, num_boost_round,
         train_by_meter.append(train_temp)
         label_by_meter.append(label_temp)
 
-    click.echo("Building models and start training...")
-    for (train, label) in zip(train_by_meter, label_by_meter):
-        del train["meter"]
-        train_lgb_df = lgb.Dataset(data=train, label=label)
-        verbose_eval = 25
-        valid_sets = [train_lgb_df]
-        lgbm_model = lgb.train(params=params,
-                               train_set=train_lgb_df,
-                               num_boost_round=num_boost_round,
-                               valid_sets=valid_sets,
-                               verbose_eval=verbose_eval,
-                               early_stopping_rounds=early_stopping_rounds)
-        click.echo("Saving trained model...")
-        save_model(output_filepath, lgbm_model)
+    with timer("Building models and start training"):
+        for (train, label) in zip(train_by_meter, label_by_meter):
+            del train["meter"]
+            train_lgb_df = lgb.Dataset(data=train, label=label)
+            verbose_eval = 25
+            valid_sets = [train_lgb_df]
+            lgbm_model = lgb.train(params=params,
+                                   train_set=train_lgb_df,
+                                   num_boost_round=num_boost_round,
+                                   valid_sets=valid_sets,
+                                   verbose_eval=verbose_eval,
+                                   early_stopping_rounds=early_stopping_rounds)
+            with timer("Saving trained model"):
+                save_model(output_filepath, lgbm_model)
 
 
 def start_cv_run(train_df, label, params,
@@ -126,31 +129,31 @@ def start_cv_run(train_df, label, params,
     output_filepath = output_filepath + "_cv"
     cv_results = []
     splits = 2
-    click.echo("Starting " + str(splits) + " fold cross-validation...")
-    kf = KFold(n_splits=splits, shuffle=False, random_state=1337)
-    for i, (train_index, test_index) in enumerate(kf.split(train_df, label)):
-        click.echo(("~~~~ Fold %d of %d ~~~~" % (i + 1, splits)))
-        x_train, x_valid = train_df.iloc[train_index], train_df.iloc[test_index]
-        y_train, y_valid = label[train_index], label[test_index]
+    with timer("Performing " + str(splits) + " fold cross-validation"):
+        kf = KFold(n_splits=splits, shuffle=False, random_state=1337)
+        for i, (train_index, test_index) in enumerate(kf.split(train_df, label)):
+            with timer("~~~~ Fold %d of %d ~~~~" % (i + 1, splits)):
+                x_train, x_valid = train_df.iloc[train_index], train_df.iloc[test_index]
+                y_train, y_valid = label[train_index], label[test_index]
 
-        train_lgb_df = lgb.Dataset(data=x_train, label=y_train)
-        valid_lgb_df = lgb.Dataset(data=x_valid, label=y_valid)
+                train_lgb_df = lgb.Dataset(data=x_train, label=y_train)
+                valid_lgb_df = lgb.Dataset(data=x_valid, label=y_valid)
 
-        valid_sets = [train_lgb_df, valid_lgb_df]
-        verbose_eval = 25
-        evals_result = dict()
-        lgbm_model = lgb.train(params=params,
-                               train_set=train_lgb_df,
-                               num_boost_round=num_boost_round,
-                               valid_sets=valid_sets,
-                               valid_names=["train_loss", "eval"],
-                               verbose_eval=verbose_eval,
-                               evals_result=evals_result,
-                               early_stopping_rounds=early_stopping_rounds)
-        save_model(output_filepath, lgbm_model)
+                valid_sets = [train_lgb_df, valid_lgb_df]
+                verbose_eval = 25
+                evals_result = dict()
+                lgbm_model = lgb.train(params=params,
+                                       train_set=train_lgb_df,
+                                       num_boost_round=num_boost_round,
+                                       valid_sets=valid_sets,
+                                       valid_names=["train_loss", "eval"],
+                                       verbose_eval=verbose_eval,
+                                       evals_result=evals_result,
+                                       early_stopping_rounds=early_stopping_rounds)
+                save_model(output_filepath, lgbm_model)
 
-        cv_results.append(evals_result)
-    evaluate_cv_results(cv_results)
+                cv_results.append(evals_result)
+        evaluate_cv_results(cv_results)
 
 
 def save_model(output_filepath, model):
