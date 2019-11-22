@@ -60,10 +60,6 @@ def main(input_filepath, output_filepath):
     with timer("Save processed data"):
         save_processed_data(output_filepath, train_df, test_df)
 
-    click.echo("The dataset provides these columns: ")
-    print(list(train_df.columns))
-    print(train_df.head(10))
-
 
 def load_interim_data(input_filepath):
     """
