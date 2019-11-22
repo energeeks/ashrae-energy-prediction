@@ -25,6 +25,7 @@ def main(input_filepath, model_type, model_path):
 
     with timer("Loading testing data"):
         test_df = pd.read_pickle(input_filepath + "/test_data.pkl")
+        test_df.drop(columns=["timestamp"], inplace=True)
 
     row_ids = test_df["row_id"]
     del test_df["row_id"]
