@@ -117,7 +117,8 @@ def add_lag_features(data_frame):
     for col in cols:
         for window in windows:
             data_frame["{}_{}_lag".format(col, window)] = data_frame\
-                .groupby(["site_id", "building_id", "meter"])[col].rolling(window)\
+                .groupby(["site_id", "building_id", "meter"])[col]\
+                .rolling(window, center=False)\
                 .mean().reset_index(drop=True)
     return data_frame
 
