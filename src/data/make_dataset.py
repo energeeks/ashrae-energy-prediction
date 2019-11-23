@@ -2,14 +2,13 @@
 import logging
 import os
 from pathlib import Path
-
 import click
 import numpy as np
 import pandas as pd
 from dotenv import find_dotenv, load_dotenv
-
 from src.timer import timer
-
+from sklearn.preprocessing import StandardScaler
+from fancyimpute import KNN
 
 @click.command()
 @click.argument('input_filepath', type=click.Path(exists=True))
@@ -22,7 +21,15 @@ def main(input_filepath, output_filepath):
     logger.info('making final data set from raw data')
 
     with timer("Loading data"):
-        train_df, test_df = load_raw_data(input_filepath)
+        train_df, test_df, weather_train, weather_test = load_raw_data(input_filepath)
+
+    with timer("Impute missing weather data"):
+        weather_train = impute_weather_data(weather_train)
+        weather_test = impute_weather_data(weather_test)
+
+    with timer("Merge weather data"):
+        train_df = merge_weather_data(train_df, weather_train)
+        test_df = merge_weather_data(test_df, weather_test)
 
     with timer("Reducing memory allocation of dataframes"):
         train_df = reduce_mem_usage(train_df)
@@ -54,15 +61,61 @@ def load_raw_data(input_filepath):
         weather_test = pd.read_csv(input_filepath + "/weather_test.csv")
         test_df = pd.read_csv(input_filepath + "/test.csv")
 
-    with timer("Performing join operations"):
         train_df = train_df.merge(building_df, left_on="building_id", right_on="building_id", how="left")
-        train_df = train_df.merge(weather_train, left_on=["site_id", "timestamp"], right_on=["site_id", "timestamp"],
-                                  how="left")
         test_df = test_df.merge(building_df, left_on="building_id", right_on="building_id", how="left")
-        test_df = test_df.merge(weather_test, left_on=["site_id", "timestamp"], right_on=["site_id", "timestamp"],
-                                how="left")
 
-    return train_df, test_df
+    return train_df, test_df, weather_train, weather_test
+
+
+def impute_weather_data(data_frame):
+    data_frame["timestamp"] = pd.to_datetime(data_frame["timestamp"])
+    min_date = data_frame["timestamp"].dropna().min()
+    max_date = data_frame["timestamp"].dropna().max()
+    date_range = pd.date_range(start=min_date, end=max_date, freq="1H")
+    date_range = pd.to_datetime(date_range)
+    date_range = pd.DataFrame({"timestamp": date_range})
+    weather_imputed = pd.DataFrame(columns=["timestamp", "site_id"])
+
+    # Create perfect timeline without missing hours
+    for site in data_frame["site_id"].unique():
+        date_range["site_id"] = site
+        weather_imputed = weather_imputed.append(date_range)
+
+    # Join with existing weather data
+    weather_imputed = merge_weather_data(weather_imputed, data_frame)
+
+    # Preserve data_frame data before transforming
+    weather_cols = weather_imputed.columns.values
+    weather_timestamp = weather_imputed["timestamp"]
+    weather_site_ids = weather_imputed["site_id"]
+
+    # Scale data for KNN
+    date_delta = pd.datetime.now() - weather_imputed["timestamp"]
+    weather_imputed["timestamp"] = date_delta.dt.total_seconds()
+    scaler = StandardScaler()
+    weather_imputed = scaler.fit_transform(weather_imputed)
+
+    # Impute missing values
+    weather_imputed = KNN(5).fit_transform(weather_imputed)
+
+    # Rescale
+    weather_imputed = scaler.inverse_transform(weather_imputed)
+
+    # Assemble final weather frame
+    weather_final = pd.DataFrame(data=weather_imputed, columns=weather_cols)
+    weather_final["timestamp"] = weather_timestamp
+    weather_final["site_id"] = weather_site_ids
+
+    return weather_final
+
+
+def merge_weather_data(data_frame, weather_df):
+    """
+    Merges the data_frame with the weather data.
+    """
+    data_frame = data_frame.merge(weather_df, left_on=["site_id", "timestamp"], right_on=["site_id", "timestamp"],
+                                  how="left")
+    return data_frame
 
 
 def reduce_mem_usage(df, verbose=True):
