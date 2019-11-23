@@ -1,6 +1,6 @@
 import os
 import random
-
+import yaml
 import click
 import lightgbm as lgb
 import numpy as np
@@ -26,32 +26,24 @@ def main(mode, input_filepath, output_filepath):
     ###########################################################################
     # DEFINE PARAMETERS FOR THE LGBM MODEL                                     #
     ###########################################################################
-
-    params = {
-        "objective": "regression",
-        "boosting": "gbdt",
-        "num_leaves": 40,
-        "learning_rate": 0.05,
-        "feature_fraction": 0.85,
-        "reg_lambda": 2,
-        "metric": "rmse",
-        "verbosity": -1
-    }
-
-    num_boost_round = 5
-    early_stopping_rounds = 2
-
+    with open("src/config.yml", 'r') as ymlfile:
+        cfg = yaml.load(ymlfile, Loader=yaml.FullLoader)
+    params = cfg["lgbm_params"]
+    num_boost_round = cfg["num_boost_round"]
+    early_stopping_rounds = cfg["early_stopping_rounds"]
+    splits = cfg["splits_for_cv"]
+    verbose_eval = cfg["verbose_eval"]
     ###########################################################################
 
     if mode == "full":
-        start_full_training_run(train_df, label, params,
+        start_full_training_run(train_df, label, params, verbose_eval,
                                 num_boost_round, early_stopping_rounds,
                                 output_filepath)
     elif mode == "cv":
-        start_cv_run(train_df, label, params,
+        start_cv_run(train_df, label, params, splits, verbose_eval,
                      num_boost_round, early_stopping_rounds, output_filepath)
     elif mode == "by_meter":
-        start_full_by_meter_run(train_df, label, params,
+        start_full_by_meter_run(train_df, label, params, verbose_eval,
                                 num_boost_round, early_stopping_rounds, output_filepath)
     else:
         raise ValueError("Choose a valid mode: 'full', 'cv'")
@@ -70,14 +62,13 @@ def load_processed_training_data(input_filepath):
     return train_df, label
 
 
-def start_full_training_run(train_df, label, params,
+def start_full_training_run(train_df, label, params, verbose_eval,
                             num_boost_round, early_stopping_rounds, output_filepath):
     """"
     Starts a full training run with the provided parameters.
     """
     with timer("Building model and start training"):
         train_lgb_df = lgb.Dataset(data=train_df, label=label)
-        verbose_eval = 25
         valid_sets = [train_lgb_df]
         lgbm_model = lgb.train(params=params,
                                train_set=train_lgb_df,
@@ -89,7 +80,7 @@ def start_full_training_run(train_df, label, params,
         save_model(output_filepath, lgbm_model)
 
 
-def start_full_by_meter_run(train_df, label, params, num_boost_round,
+def start_full_by_meter_run(train_df, label, params, verbose_eval, num_boost_round,
                             early_stopping_rounds, output_filepath):
     """
     Divides the data into the four meter types and trains a model on each one
@@ -108,7 +99,6 @@ def start_full_by_meter_run(train_df, label, params, num_boost_round,
         for (train, label) in zip(train_by_meter, label_by_meter):
             del train["meter"]
             train_lgb_df = lgb.Dataset(data=train, label=label)
-            verbose_eval = 25
             valid_sets = [train_lgb_df]
             lgbm_model = lgb.train(params=params,
                                    train_set=train_lgb_df,
@@ -120,7 +110,7 @@ def start_full_by_meter_run(train_df, label, params, num_boost_round,
                 save_model(output_filepath, lgbm_model)
 
 
-def start_cv_run(train_df, label, params,
+def start_cv_run(train_df, label, params, splits, verbose_eval,
                  num_boost_round, early_stopping_rounds, output_filepath):
     """
     Starts a Cross Validation Run with the parameters provided.
@@ -128,7 +118,6 @@ def start_cv_run(train_df, label, params,
     """
     output_filepath = output_filepath + "_cv"
     cv_results = []
-    splits = 2
     with timer("Performing " + str(splits) + " fold cross-validation"):
         kf = KFold(n_splits=splits, shuffle=False, random_state=1337)
         for i, (train_index, test_index) in enumerate(kf.split(train_df, label)):
@@ -140,7 +129,6 @@ def start_cv_run(train_df, label, params,
                 valid_lgb_df = lgb.Dataset(data=x_valid, label=y_valid)
 
                 valid_sets = [train_lgb_df, valid_lgb_df]
-                verbose_eval = 25
                 evals_result = dict()
                 lgbm_model = lgb.train(params=params,
                                        train_set=train_lgb_df,

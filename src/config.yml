@@ -1,0 +1,28 @@
+###########################################################################
+# DEFINE COLUMNS TO BE DROPPED                                            #
+###########################################################################
+drop:
+  - timestamp
+  - sea_level_pressure
+  - wind_direction
+  - wind_speed
+
+##########################################################################
+# DEFINE PARAMETERS FOR THE LGBM MODEL                                     #
+###########################################################################
+lgbm_params:
+  objective: regression
+  boosting: gbdt
+  num_leaves: 40
+  learning_rate: 0.05
+  feature_fraction: 0.85
+  reg_lambda: 2
+  metric: rmse
+  verbosity: -1
+
+num_boost_round: 5
+early_stopping_rounds: 2
+verbose_eval: 25
+splits_for_cv: 2
+
+###########################################################################

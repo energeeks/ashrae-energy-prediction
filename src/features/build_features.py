@@ -1,5 +1,5 @@
 import os
-
+import yaml
 import click
 import numpy as np
 import pandas as pd
@@ -16,6 +16,8 @@ def main(input_filepath, output_filepath):
         (../interim) into data which is ready for usage in ML models
         (saved in ../processed).
     """
+    with open("src/config.yml", 'r') as ymlfile:
+        cfg = yaml.load(ymlfile, Loader=yaml.FullLoader)
     # <TODO>
     # ALL FEATURE ENGINEERING GOES IN HERE
 
@@ -55,8 +57,8 @@ def main(input_filepath, output_filepath):
         train_df.reset_index(drop=True, inplace=True)
 
     with timer("Dropping specified columns"):
-        train_df = drop_columns(train_df)
-        test_df = drop_columns(test_df)
+        train_df = drop_columns(train_df, cfg["drop"])
+        test_df = drop_columns(test_df, cfg["drop"])
 
     with timer("Save processed data"):
         save_processed_data(output_filepath, train_df, test_df)
@@ -64,7 +66,7 @@ def main(input_filepath, output_filepath):
 
 def load_interim_data(input_filepath):
     """
-    Loads interim data which already is preserved as python object due to
+T    Loads interim data which already is preserved as python object due to
     previous processing steps
     """
     train_df = pd.read_pickle(input_filepath + "/train_data.pkl")
@@ -124,11 +126,7 @@ def encode_wind_direction(data_frame):
     return data_frame
 
 
-def drop_columns(data_frame):
-    drop = ["timestamp",
-            "sea_level_pressure",
-            "wind_direction",
-            "wind_speed"]
+def drop_columns(data_frame, drop):
     data_frame.drop(columns=drop, inplace=True)
     return data_frame
 
