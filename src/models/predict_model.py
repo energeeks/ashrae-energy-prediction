@@ -1,11 +1,11 @@
 import os
-
+import yaml
 import click
 import lightgbm as lgb
 import numpy as np
 import pandas as pd
 import xgboost as xgb
-
+from datetime import timedelta
 from src.timer import timer
 
 
@@ -18,6 +18,9 @@ def main(input_filepath, model_type, model_path):
     Loads a trained model and testing data to create a submission file which is
     ready for uploading.
     """
+    with open("src/config.yml", 'r') as ymlfile:
+        cfg = yaml.load(ymlfile, Loader=yaml.FullLoader)
+
     with timer("Loading testing data"):
         test_df = pd.read_pickle(input_filepath + "/test_data.pkl")
 
@@ -37,7 +40,7 @@ def main(input_filepath, model_type, model_path):
         raise ValueError(model_type + " is not a valid model type to predict from")
 
     with timer("Creating submission file"):
-        create_submission_file(row_ids, predictions)
+        create_submission_file(row_ids, predictions, cfg["use_leaks"])
 
 
 def predict_with_xgb(test_df, model_filepath):
@@ -133,15 +136,63 @@ def predict_with_lgbm_meter(test_df, row_ids, model_filepath):
     return predictions
 
 
-def create_submission_file(row_ids, predictions):
+def create_submission_file(row_ids, predictions, use_leaks=False):
     """
     Creates a submission file which fulfills the upload conditions for the
     kaggle challenge.
     """
     submission = pd.DataFrame({"row_id": row_ids, "meter_reading": predictions})
+
+    if use_leaks:
+        submission = add_leaks_to_submission(submission)
+
     submission_dir = "submissions"
     os.makedirs(submission_dir, exist_ok=True)
     submission.to_csv(submission_dir + "/submission.csv", index=False)
+
+
+def add_leaks_to_submission(submission):
+    """"
+    Complements the predicted values with the real leaked labels. Special thanks to
+    https://www.kaggle.com/wuliaokaola/ashrae-maybe-this-can-make-public-lb-some-useful
+    """
+    test_df = pd.read_csv("data/raw/test.csv", index_col=0, parse_dates=['timestamp'])
+    building_df = pd.read_csv("data/raw/building_metadata.csv", usecols=['site_id', 'building_id'])
+    test_df = test_df.merge(building_df, left_on="building_id", right_on="building_id", how="left")
+    t = test_df[['building_id', 'meter', 'timestamp']]
+    t['row_id'] = t.index
+
+    # Site 0 Leaks
+    site_0 = pd.read_csv("data/leaks/submission_ucf_replaced.csv", index_col=0)
+    submission.loc[test_df[test_df["site_id"] == 0].index, "meter_reading"] = site_0["meter_reading"]
+
+    # Site 1 Leaks
+    site_1 = pd.read_pickle("data/leaks/site1.pkl")
+    site_1 = site_1[site_1['timestamp'].dt.year > 2016]
+    site_1 = site_1.merge(t, left_on=["building_id", "meter", "timestamp"],
+                          right_on=["building_id", "meter", "timestamp"], how="left")
+    site_1 = site_1[["meter_reading_scraped", "row_id"]].set_index("row_id").dropna()
+    submission.loc[site_1.index, "meter_reading"] = site_1["meter_reading_scraped"]
+
+    # Site 2 Leaks
+    site_2 = pd.read_csv("data/leaks/asu_2016-2018.csv", parse_dates=["timestamp"])
+    site_2 = site_2[site_2["timestamp"].dt.year > 2016]
+    site_2 = site_2.merge(t, left_on=["building_id", "meter", "timestamp"],
+                          right_on=["building_id", "meter", "timestamp"], how="left")
+    site_2 = site_2[["meter_reading", "row_id"]].set_index("row_id").dropna()
+    submission.loc[site_2.index, "meter_reading"] = site_2["meter_reading"]
+
+    # Site 4 Leaks
+    site_4 = pd.read_csv("data/leaks/site4_leak_data_v2.csv", parse_dates=["timestamp"])
+    site_4["meter"] = 0
+    site_4["timestamp"] = pd.DatetimeIndex(site_4["timestamp"]) + timedelta(hours=-8)
+    site_4 = site_4[site_4["timestamp"].dt.year > 2016]
+    site_4 = site_4.merge(t, left_on=["building_id", "meter", "timestamp"],
+                          right_on=["building_id", "meter", "timestamp"], how="left")
+    site_4 = site_4[["meter_reading", "row_id"]].set_index("row_id").dropna()
+    submission.loc[site_4.index, "meter_reading"] = site_4["meter_reading"]
+
+    return submission
 
 
 if __name__ == '__main__':
