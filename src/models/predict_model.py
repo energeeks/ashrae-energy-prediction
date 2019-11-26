@@ -164,8 +164,8 @@ def add_leaks_to_submission(submission):
 
     test_df = pd.read_csv("data/raw/test.csv")
 
-    test_df = test_df.merge(leaked_df, left_on=["building_id", "timestamp"],
-                            right_on=["building_id", "timestamp"], how="left")
+    test_df = test_df.merge(leaked_df, left_on=["building_id", "meter", "timestamp"],
+                            right_on=["building_id", "meter", "timestamp"], how="left")
     test_df["meter_reading"] = submission
     test_df["meter_reading"] = np.where(test_df["leaked_reading"].isna(),
                                         test_df["meter_reading"], test_df["leaked_reading"])
