@@ -121,9 +121,9 @@ def add_lag_features(data_frame):
     windows = [6, 24]
     for col in cols:
         for window in windows:
-            data_frame["{}_{}_lag".format(col, window)] = data_frame\
-                .groupby(["site_id", "building_id", "meter"])[col]\
-                .rolling(window, center=False)\
+            data_frame["{}_{}_lag".format(col, window)] = data_frame \
+                .groupby(["site_id", "building_id", "meter"])[col] \
+                .rolling(window, center=False) \
                 .mean().reset_index(drop=True)
     return data_frame
 
@@ -135,8 +135,8 @@ def exclude_faulty_readings(data_frame):
     -cleanup-lb-1-08-no-leaks for providing a detailed guide and identification
     of the problematical rows.
     """
-    rows_to_drop = pd.read_csv("data/external/rows_to_drop.csv", header=False, index=False)
-    return data_frame.drop(index=rows_to_drop)
+    rows_to_drop = pd.read_csv("data/external/rows_to_drop.csv")
+    return data_frame.drop(index=rows_to_drop.iloc[:, 0])
 
 
 def encode_wind_direction(data_frame):
