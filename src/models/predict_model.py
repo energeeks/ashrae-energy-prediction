@@ -158,8 +158,7 @@ def add_leaks_to_submission(submission):
     """
     leaked_df = pd.read_feather("data/leak/leak.feather")
     leaked_df = leaked_df.rename({"meter_reading": "leaked_reading"})
-    leaked_df.fillna(0, inplace=True)
-    leaked_df["leaked_reading"][leaked_df["leaked_reading"] < 0] = 0
+    leaked_df.loc[leaked_df["leaked_reading"] < 0, "leaked_reading"] = 0
     leaked_df = leaked_df[leaked_df["building_id"] != 245]
 
     test_df = pd.read_csv("data/raw/test.csv")
