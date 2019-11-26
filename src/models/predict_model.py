@@ -160,6 +160,7 @@ def add_leaks_to_submission(submission):
     leaked_df = leaked_df.rename({"meter_reading": "leaked_reading"})
     leaked_df.loc[leaked_df["leaked_reading"] < 0, "leaked_reading"] = 0
     leaked_df = leaked_df[leaked_df["building_id"] != 245]
+    leaked_df["timestamp"] = leaked_df["timestamp"].dt.strftime("%Y-%m-%d %H:%M:%S")
 
     test_df = pd.read_csv("data/raw/test.csv")
 
