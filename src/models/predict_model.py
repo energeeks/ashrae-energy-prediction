@@ -158,15 +158,18 @@ def add_leaks_to_submission(submission):
     """
     leaked_df = pd.read_feather("data/leak/leak.feather")
     leaked_df = leaked_df.rename({"meter_reading": "leaked_reading"})
+    leaked_df.fillna(0, inplace=True)
+    leaked_df["leaked_reading"][leaked_df["leaked_reading"] < 0] = 0
+
     test_df = pd.read_csv("data/raw/test.csv")
 
     test_df = test_df.merge(leaked_df, left_on=["building_id", "timestamp"],
                             right_on=["building_id", "timestamp"], how="left")
-    test_df["meter_readings"] = submission
-    test_df["meter_readings"] = np.where(test_df["leaked_readings"].isna(),
-                                         test_df["meter_readings"], test_df["leaked_readings"])
+    test_df["meter_reading"] = submission
+    test_df["meter_reading"] = np.where(test_df["leaked_reading"].isna(),
+                                        test_df["meter_reading"], test_df["leaked_reading"])
 
-    return test_df["meter_readings"]
+    return test_df["meter_reading"]
 
 
 if __name__ == '__main__':
