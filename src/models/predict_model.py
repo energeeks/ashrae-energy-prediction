@@ -141,23 +141,23 @@ def create_submission_file(row_ids, predictions, use_leaks=False):
     Creates a submission file which fulfills the upload conditions for the
     kaggle challenge.
     """
-    submission = pd.DataFrame({"row_id": row_ids, "meter_reading": predictions})
-
     if use_leaks:
-        submission = add_leaks_to_submission(submission)
+        with timer("Adding leaks to submission file"):
+            predictions = add_leaks_to_submission(predictions)
 
+    submission = pd.DataFrame({"row_id": row_ids, "meter_reading": predictions})
     submission_dir = "submissions"
     os.makedirs(submission_dir, exist_ok=True)
     submission.to_csv(submission_dir + "/submission.csv", index=False)
 
 
-def add_leaks_to_submission(submission):
+def add_leaks_to_submission(predictions):
     """"
     Complements the predicted values with the real leaked labels. Special thanks to
     https://www.kaggle.com/yamsam/ashrae-leak-data-station
     """
     leaked_df = pd.read_feather("data/leak/leak.feather")
-    leaked_df = leaked_df.rename({"meter_reading": "leaked_reading"})
+    leaked_df.rename(columns={"meter_reading": "leaked_reading"}, inplace=True)
     leaked_df.loc[leaked_df["leaked_reading"] < 0, "leaked_reading"] = 0
     leaked_df = leaked_df[leaked_df["building_id"] != 245]
     leaked_df["timestamp"] = leaked_df["timestamp"].dt.strftime("%Y-%m-%d %H:%M:%S")
@@ -166,7 +166,7 @@ def add_leaks_to_submission(submission):
 
     test_df = test_df.merge(leaked_df, left_on=["building_id", "meter", "timestamp"],
                             right_on=["building_id", "meter", "timestamp"], how="left")
-    test_df["meter_reading"] = submission
+    test_df["meter_reading"] = predictions
     test_df["meter_reading"] = np.where(test_df["leaked_reading"].isna(),
                                         test_df["meter_reading"], test_df["leaked_reading"])
 
