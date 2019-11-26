@@ -154,45 +154,19 @@ def create_submission_file(row_ids, predictions, use_leaks=False):
 def add_leaks_to_submission(submission):
     """"
     Complements the predicted values with the real leaked labels. Special thanks to
-    https://www.kaggle.com/wuliaokaola/ashrae-maybe-this-can-make-public-lb-some-useful
+    https://www.kaggle.com/yamsam/ashrae-leak-data-station
     """
-    test_df = pd.read_csv("data/raw/test.csv", index_col=0, parse_dates=['timestamp'])
-    building_df = pd.read_csv("data/raw/building_metadata.csv", usecols=['site_id', 'building_id'])
-    test_df = test_df.merge(building_df, left_on="building_id", right_on="building_id", how="left")
-    t = test_df[['building_id', 'meter', 'timestamp']]
-    t['row_id'] = t.index
+    leaked_df = pd.read_feather("data/leak/leak.feather")
+    leaked_df = leaked_df.rename({"meter_reading": "leaked_reading"})
+    test_df = pd.read_csv("data/raw/test.csv")
 
-    # Site 0 Leaks
-    site_0 = pd.read_csv("data/leaks/submission_ucf_replaced.csv", index_col=0)
-    submission.loc[test_df[test_df["site_id"] == 0].index, "meter_reading"] = site_0["meter_reading"]
+    test_df = test_df.merge(leaked_df, left_on=["building_id", "timestamp"],
+                            right_on=["building_id", "timestamp"], how="left")
+    test_df["meter_readings"] = submission
+    test_df["meter_readings"] = np.where(test_df["leaked_readings"].isna(),
+                                         test_df["meter_readings"], test_df["leaked_readings"])
 
-    # Site 1 Leaks
-    site_1 = pd.read_pickle("data/leaks/site1.pkl")
-    site_1 = site_1[site_1['timestamp'].dt.year > 2016]
-    site_1 = site_1.merge(t, left_on=["building_id", "meter", "timestamp"],
-                          right_on=["building_id", "meter", "timestamp"], how="left")
-    site_1 = site_1[["meter_reading_scraped", "row_id"]].set_index("row_id").dropna()
-    submission.loc[site_1.index, "meter_reading"] = site_1["meter_reading_scraped"]
-
-    # Site 2 Leaks
-    site_2 = pd.read_csv("data/leaks/asu_2016-2018.csv", parse_dates=["timestamp"])
-    site_2 = site_2[site_2["timestamp"].dt.year > 2016]
-    site_2 = site_2.merge(t, left_on=["building_id", "meter", "timestamp"],
-                          right_on=["building_id", "meter", "timestamp"], how="left")
-    site_2 = site_2[["meter_reading", "row_id"]].set_index("row_id").dropna()
-    submission.loc[site_2.index, "meter_reading"] = site_2["meter_reading"]
-
-    # Site 4 Leaks
-    site_4 = pd.read_csv("data/leaks/site4_leak_data_v2.csv", parse_dates=["timestamp"])
-    site_4["meter"] = 0
-    site_4["timestamp"] = pd.DatetimeIndex(site_4["timestamp"]) + timedelta(hours=-8)
-    site_4 = site_4[site_4["timestamp"].dt.year > 2016]
-    site_4 = site_4.merge(t, left_on=["building_id", "meter", "timestamp"],
-                          right_on=["building_id", "meter", "timestamp"], how="left")
-    site_4 = site_4[["meter_reading", "row_id"]].set_index("row_id").dropna()
-    submission.loc[site_4.index, "meter_reading"] = site_4["meter_reading"]
-
-    return submission
+    return test_df["meter_readings"]
 
 
 if __name__ == '__main__':
