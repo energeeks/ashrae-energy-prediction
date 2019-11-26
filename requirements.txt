@@ -9,7 +9,6 @@ seaborn
 sklearn
 kaggle
 lightgbm
-fancyimpute
 
 # local package
 -e .

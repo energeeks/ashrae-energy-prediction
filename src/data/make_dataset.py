@@ -8,7 +8,9 @@ import pandas as pd
 from dotenv import find_dotenv, load_dotenv
 from src.timer import timer
 from sklearn.preprocessing import StandardScaler
-from fancyimpute import KNN
+from sklearn.experimental import enable_iterative_imputer
+from sklearn.impute import IterativeImputer
+
 
 @click.command()
 @click.argument('input_filepath', type=click.Path(exists=True))
@@ -96,7 +98,8 @@ def impute_weather_data(data_frame):
     weather_imputed = scaler.fit_transform(weather_imputed)
 
     # Impute missing values
-    weather_imputed = KNN(5).fit_transform(weather_imputed)
+    imputer = IterativeImputer()
+    weather_imputed = imputer.fit_transform(weather_imputed)
 
     # Rescale
     weather_imputed = scaler.inverse_transform(weather_imputed)
