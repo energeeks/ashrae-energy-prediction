@@ -51,6 +51,9 @@ def main(input_filepath, output_filepath):
         train_df = add_lag_features(train_df)
         test_df = add_lag_features(test_df)
 
+    with timer("Exclude faulty data and outliers"):
+        train_df = exclude_faulty_readings(train_df)
+
     with timer("Sort training set"):
         train_df.sort_values("timestamp", inplace=True)
         train_df.reset_index(drop=True, inplace=True)
@@ -123,6 +126,17 @@ def add_lag_features(data_frame):
                 .rolling(window, center=False)\
                 .mean().reset_index(drop=True)
     return data_frame
+
+
+def exclude_faulty_readings(data_frame):
+    """"
+    Cleanses the provided data_frame from faulty readings and/or outlier data.
+    Special thanks goes to https://www.kaggle.com/purist1024/ashrae-simple-data
+    -cleanup-lb-1-08-no-leaks for providing a detailed guide and identification
+    of the problematical rows.
+    """
+    rows_to_drop = pd.read_csv("data/external/rows_to_drop.csv", header=False, index=False)
+    return data_frame.drop(index=rows_to_drop)
 
 
 def encode_wind_direction(data_frame):
