@@ -32,11 +32,6 @@ def main(input_filepath, output_filepath):
         train_df = adjust_column_types(train_df)
         test_df = adjust_column_types(test_df)
 
-    # <TODO>
-    # FUNCTIONS FOR CLEANSING THE DATA COME HERE
-    # --> LOGIC CLEANSING
-    # --> HANDLE NANS
-
     with timer("Saving cleansed data"):
         save_joined_data(train_df, test_df, output_filepath)
 
