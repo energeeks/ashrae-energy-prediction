@@ -5,7 +5,6 @@ import lightgbm as lgb
 import numpy as np
 import pandas as pd
 import xgboost as xgb
-from datetime import timedelta
 from src.timer import timer
 
 
