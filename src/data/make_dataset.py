@@ -106,7 +106,7 @@ def impute_weather_data(data_frame):
 
     # Assemble final weather frame
     weather_final = pd.DataFrame(data=weather_imputed, columns=weather_cols)
-    weather_final["timestamp"] = weather_timestamp
+    weather_final["timestamp"] = weather_timestamp.dt.strftime("%Y-%m-%d %H:%M:%S")
     weather_final["site_id"] = weather_site_ids
 
     return weather_final
