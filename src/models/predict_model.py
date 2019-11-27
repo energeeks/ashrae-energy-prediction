@@ -143,7 +143,7 @@ def predict_with_lgbm_building(test_df, row_ids, model_filepath):
     Takes a given directory which contains n folders (one for each
     building) and then predicts the rows with the respective models
     """
-    buildings_in_dir = sorted(os.listdir(model_filepath))
+    buildings_in_dir = sorted(os.listdir(model_filepath), key=int)
     test_df["row_id"] = row_ids
     test_df = test_df.drop(columns=["site_id"], axis=1)
     test_df = test_df.groupby("building_id")
@@ -151,7 +151,7 @@ def predict_with_lgbm_building(test_df, row_ids, model_filepath):
     predictions_by_building = []
     row_id_by_building = []
     for b in buildings_in_dir:
-        test_by_building = test_df.get_group(b)
+        test_by_building = test_df.get_group(int(b))
         test_by_building = test_by_building.reset_index(drop=True)
         rows_grouped = list(test_by_building["row_id"])
         test_by_building = test_by_building.drop(columns=["building_id"], axis=1)
@@ -159,8 +159,9 @@ def predict_with_lgbm_building(test_df, row_ids, model_filepath):
         models_in_dir = os.listdir(model_filepath + "/" + b)
         num_models = len(models_in_dir)
         predictions_group = np.zeros(len(rows_grouped))
+        i = 0
         for model in models_in_dir:
-            i = int(model)
+            i += 1
             click.echo("Predicting Building " + b + " [" + str(i) + "/" + str(num_models) + "]")
             lgbm_model = lgb.Booster(model_file=model_filepath + "/" + b + "/" + model)
             predictions_current = lgbm_model.predict(test_by_building)
