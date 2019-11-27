@@ -86,6 +86,11 @@ def impute_weather_data(data_frame):
     # Join with existing weather data
     weather_imputed = merge_weather_data(weather_imputed, data_frame)
 
+    # Create new temporal features for better imputation
+    weather_imputed["hour"] = pd.Categorical(weather_imputed["timestamp"].dt.hour)
+    weather_imputed["weekday"] = pd.Categorical(weather_imputed["timestamp"].dt.dayofweek)
+    weather_imputed["month"] = pd.Categorical(weather_imputed["timestamp"].dt.month)
+
     # Preserve data_frame data before transforming
     weather_cols = weather_imputed.columns.values
     weather_timestamp = weather_imputed["timestamp"]
@@ -108,6 +113,7 @@ def impute_weather_data(data_frame):
     weather_final = pd.DataFrame(data=weather_imputed, columns=weather_cols)
     weather_final["timestamp"] = weather_timestamp.dt.strftime("%Y-%m-%d %H:%M:%S")
     weather_final["site_id"] = weather_site_ids
+    weather_final = weather_final.drop(columns=["hour", "weekday", "month"], axis=1)
 
     return weather_final
 
