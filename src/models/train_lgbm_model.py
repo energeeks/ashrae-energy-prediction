@@ -131,12 +131,12 @@ def start_full_by_building_run(train_df, label, params, splits, verbose_eval,
         train_by_building = train_by_building.reset_index(drop=True)
         label = train_by_building["label"]
         train_by_building = train_by_building.drop(columns=["building_id", "label"], axis=1)
-        with timer("Performing " + str(splits) + " fold cross-validation on \
-        building " + str(b)):
+        with timer("Performing " + str(splits) + " fold cross-validation on building "\
+                   + str(b)):
             kf = KFold(n_splits=splits, shuffle=False, random_state=1337)
             for i, (train_index, test_index) in enumerate(kf.split(train_by_building, label)):
                 with timer("~~~~ Fold %d of %d ~~~~" % (i + 1, splits)):
-                    x_train, x_valid = train_df.iloc[train_index], train_df.iloc[test_index]
+                    x_train, x_valid = train_by_building.iloc[train_index], train_by_building.iloc[test_index]
                     y_train, y_valid = label[train_index], label[test_index]
 
                     train_lgb_df = lgb.Dataset(data=x_train, label=y_train)
