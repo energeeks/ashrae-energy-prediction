@@ -122,15 +122,17 @@ def start_full_by_building_run(train_df, label, params, splits, verbose_eval,
     output_main_dir = output_filepath + "_by_building"
     train_df["label"] = label
     train_df = train_df.drop(columns=["site_id"], axis=1)
+    train_df = train_df.groupby("building_id")
+    buildings = [name for name, _ in train_df]
 
-    for train in train_df.groupby("building_id"):
-        building = train_df["building_id"].loc[0]
-        click.echo("Starting training for Building " + str(building) + ".")
-        train_by_building = train.reset_index(drop=True)
+    for b in buildings:
+        click.echo("Starting training for Building " + str(b) + ".")
+        train_by_building = train_df.get_group(b)
+        train_by_building = train_by_building.reset_index(drop=True)
         label = train_by_building["label"]
         train_by_building = train_by_building.drop(columns=["building_id", "label"], axis=1)
         with timer("Performing " + str(splits) + " fold cross-validation on \
-        building " + str(building)):
+        building " + str(b)):
             kf = KFold(n_splits=splits, shuffle=False, random_state=1337)
             for i, (train_index, test_index) in enumerate(kf.split(train_by_building, label)):
                 with timer("~~~~ Fold %d of %d ~~~~" % (i + 1, splits)):
@@ -150,7 +152,7 @@ def start_full_by_building_run(train_df, label, params, splits, verbose_eval,
                                            verbose_eval=verbose_eval,
                                            evals_result=evals_result,
                                            early_stopping_rounds=early_stopping_rounds)
-                    output_filepath = output_main_dir + "/" + str(building)
+                    output_filepath = output_main_dir + "/" + str(b)
                     save_model(output_filepath, lgbm_model)
 
 
