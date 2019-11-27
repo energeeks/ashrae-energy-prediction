@@ -35,6 +35,9 @@ def main(input_filepath, model_type, model_path):
     elif model_type == "lgbm_meter":
         predictions = predict_with_lgbm_meter(test_df, row_ids, model_path)
 
+    elif model_type == "lgbm_building":
+        predictions = predict_with_lgbm_building(test_df, row_ids, model_path)
+
     else:
         raise ValueError(model_type + " is not a valid model type to predict from")
 
@@ -131,6 +134,47 @@ def predict_with_lgbm_meter(test_df, row_ids, model_filepath):
     pred_ordered_df = row_ids_df.merge(pred_df, left_on="true_row_ids",
                                        right_on="row_id", how="left")
     predictions = pred_ordered_df["pred"].copy(deep=True)
+    predictions[predictions < 0] = 0
+    return predictions
+
+
+def predict_with_lgbm_building(test_df, row_ids, model_filepath):
+    """"
+    Takes a given directory which contains n folders (one for each
+    building) and then predicts the rows with the respective models
+    """
+    buildings_in_dir = sorted(os.listdir(model_filepath), key=int)
+    test_df["row_id"] = row_ids
+    test_df = test_df.drop(columns=["site_id"], axis=1)
+    test_df = test_df.groupby("building_id")
+
+    predictions_by_building = []
+    row_id_by_building = []
+    for b in buildings_in_dir:
+        test_by_building = test_df.get_group(int(b))
+        test_by_building = test_by_building.reset_index(drop=True)
+        rows_grouped = list(test_by_building["row_id"])
+        test_by_building = test_by_building.drop(columns=["building_id"], axis=1)
+
+        models_in_dir = os.listdir(model_filepath + "/" + b)
+        num_models = len(models_in_dir)
+        predictions_group = np.zeros(len(rows_grouped))
+        i = 0
+        for model in models_in_dir:
+            i += 1
+            click.echo("Predicting Building " + b + " [" + str(i) + "/" + str(num_models) + "]")
+            lgbm_model = lgb.Booster(model_file=model_filepath + "/" + b + "/" + model)
+            predictions_current = lgbm_model.predict(test_by_building)
+            predictions_group += np.expm1(predictions_current)
+
+        predictions_group = predictions_group / num_models
+        predictions_by_building.extend(list(predictions_group))
+        row_id_by_building.extend(rows_grouped)
+
+    # Order the predictions by merging them to the original row ids
+    pred_df = pd.DataFrame({"row_id": row_id_by_building, "pred": predictions_by_building})
+    pred_df = pred_df.sort_values("row_id")
+    predictions = pred_df["pred"].copy(deep=True)
     predictions[predictions < 0] = 0
     return predictions
 

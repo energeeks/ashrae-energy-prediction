@@ -8,6 +8,7 @@ use_leaks: False
 ###########################################################################
 drop:
   - timestamp
+  - month
   - sea_level_pressure
   - wind_direction
   - wind_speed

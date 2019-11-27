@@ -117,7 +117,7 @@ def calculate_age_of_building(data_frame):
 
 
 def add_lag_features(data_frame):
-    cols = ["air_temperature", "dew_temperature"]
+    cols = ["air_temperature", "dew_temperature", "cloud_coverage"]
     windows = [6, 24]
     for col in cols:
         for window in windows:
