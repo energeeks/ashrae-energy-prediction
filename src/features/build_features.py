@@ -43,14 +43,16 @@ def main(input_filepath, output_filepath):
     # with timer("Encoding wind_direction features"):
     #     train_df = encode_wind_direction(train_df)
     #     test_df = encode_wind_direction(test_df)
-
-    # click.echo("Ensuring integrity of data...")
-    # <TODO>
-    # COLUMN CHECKS ALSO COME HERE
-
     # Not necessary for LGBM hence currently disabled
     # train_df.fillna(0)
     # test_df.fillna(0)
+
+    with timer("Adding Lag Features"):
+        train_df = add_lag_features(train_df)
+        test_df = add_lag_features(test_df)
+
+    with timer("Exclude faulty data and outliers"):
+        train_df = exclude_faulty_readings(train_df)
 
     with timer("Sort training set"):
         train_df.sort_values("timestamp", inplace=True)
@@ -112,6 +114,29 @@ def encode_timestamp(data_frame, circular=False):
 def calculate_age_of_building(data_frame):
     data_frame["year_built"] = 2019 - data_frame["year_built"]
     return data_frame
+
+
+def add_lag_features(data_frame):
+    cols = ["air_temperature", "dew_temperature", "cloud_coverage"]
+    windows = [6, 24]
+    for col in cols:
+        for window in windows:
+            data_frame["{}_{}_lag".format(col, window)] = data_frame \
+                .groupby(["site_id", "building_id", "meter"])[col] \
+                .rolling(window, center=False) \
+                .mean().reset_index(drop=True)
+    return data_frame
+
+
+def exclude_faulty_readings(data_frame):
+    """"
+    Cleanses the provided data_frame from faulty readings and/or outlier data.
+    Special thanks goes to https://www.kaggle.com/purist1024/ashrae-simple-data
+    -cleanup-lb-1-08-no-leaks for providing a detailed guide and identification
+    of the problematical rows.
+    """
+    rows_to_drop = pd.read_csv("data/external/rows_to_drop.csv")
+    return data_frame.drop(index=rows_to_drop.iloc[:, 0])
 
 
 def encode_wind_direction(data_frame):

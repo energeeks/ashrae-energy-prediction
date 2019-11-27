@@ -45,6 +45,9 @@ def main(mode, input_filepath, output_filepath):
     elif mode == "by_meter":
         start_full_by_meter_run(train_df, label, params, verbose_eval,
                                 num_boost_round, early_stopping_rounds, output_filepath)
+    elif mode == "by_building":
+        start_full_by_building_run(train_df, label, params, splits, verbose_eval,
+                                   num_boost_round, early_stopping_rounds, output_filepath)
     else:
         raise ValueError("Choose a valid mode: 'full', 'cv'")
 
@@ -108,6 +111,49 @@ def start_full_by_meter_run(train_df, label, params, verbose_eval, num_boost_rou
                                    early_stopping_rounds=early_stopping_rounds)
             with timer("Saving trained model"):
                 save_model(output_filepath, lgbm_model)
+
+
+def start_full_by_building_run(train_df, label, params, splits, verbose_eval,
+                               num_boost_round, early_stopping_rounds, output_filepath):
+    """
+    Trains a model for each of the buildings. Expect a high wall time as the
+    count of the buildings is >1000.
+    """
+    output_main_dir = output_filepath + "_by_building"
+    train_df["label"] = label
+    train_df = train_df.drop(columns=["site_id"], axis=1)
+    train_df = train_df.groupby("building_id")
+    buildings = [name for name, _ in train_df]
+
+    for b in buildings:
+        click.echo("Starting training for Building " + str(b) + ".")
+        train_by_building = train_df.get_group(b)
+        train_by_building = train_by_building.reset_index(drop=True)
+        label = train_by_building["label"]
+        train_by_building = train_by_building.drop(columns=["building_id", "label"], axis=1)
+        with timer("Performing " + str(splits) + " fold cross-validation on building "\
+                   + str(b)):
+            kf = KFold(n_splits=splits, shuffle=False, random_state=1337)
+            for i, (train_index, test_index) in enumerate(kf.split(train_by_building, label)):
+                with timer("~~~~ Fold %d of %d ~~~~" % (i + 1, splits)):
+                    x_train, x_valid = train_by_building.iloc[train_index], train_by_building.iloc[test_index]
+                    y_train, y_valid = label[train_index], label[test_index]
+
+                    train_lgb_df = lgb.Dataset(data=x_train, label=y_train)
+                    valid_lgb_df = lgb.Dataset(data=x_valid, label=y_valid)
+
+                    valid_sets = [train_lgb_df, valid_lgb_df]
+                    evals_result = dict()
+                    lgbm_model = lgb.train(params=params,
+                                           train_set=train_lgb_df,
+                                           num_boost_round=num_boost_round,
+                                           valid_sets=valid_sets,
+                                           valid_names=["train_loss", "eval"],
+                                           verbose_eval=verbose_eval,
+                                           evals_result=evals_result,
+                                           early_stopping_rounds=early_stopping_rounds)
+                    output_filepath = output_main_dir + "/" + str(b)
+                    save_model(output_filepath, lgbm_model)
 
 
 def start_cv_run(train_df, label, params, splits, verbose_eval,

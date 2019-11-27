@@ -9,6 +9,7 @@ seaborn
 sklearn
 kaggle
 lightgbm
+pyarrow
 
 # local package
 -e .
