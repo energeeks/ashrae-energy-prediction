@@ -173,10 +173,8 @@ def predict_with_lgbm_building(test_df, row_ids, model_filepath):
 
     # Order the predictions by merging them to the original row ids
     pred_df = pd.DataFrame({"row_id": row_id_by_building, "pred": predictions_by_building})
-    row_ids_df = pd.DataFrame({"true_row_ids": row_ids})
-    pred_ordered_df = row_ids_df.merge(pred_df, left_on="true_row_ids",
-                                       right_on="row_id", how="left")
-    predictions = pred_ordered_df["pred"].copy(deep=True)
+    pred_df = pred_df.sort_values("row_id")
+    predictions = pred_df["pred"].copy(deep=True)
     predictions[predictions < 0] = 0
     return predictions
 
