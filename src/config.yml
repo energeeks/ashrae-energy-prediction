@@ -12,6 +12,9 @@ drop:
   - sea_level_pressure
   - wind_direction
   - wind_speed
+  - timezone
+  - country_code
+  - location
 
 ##########################################################################
 # DEFINE PARAMETERS FOR THE LGBM MODEL                                     #
