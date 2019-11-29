@@ -14,7 +14,7 @@ drop:
   - wind_speed
 
 ##########################################################################
-# DEFINE PARAMETERS FOR THE LGBM MODEL                                     #
+# DEFINE PARAMETERS FOR THE LGBM MODEL                                   #
 ###########################################################################
 lgbm_params:
   objective: regression
@@ -32,16 +32,14 @@ lgbm_verbose_eval: 25
 lgbm_splits_for_cv: 2
 
 ##########################################################################
-# DEFINE PARAMETERS FOR THE CatBoost MODEL                                     #
-###########################################################################
+# DEFINE PARAMETERS FOR THE CatBoost MODEL                               #
+##########################################################################
 ctb_params:
   iterations: 500
-  objective: regression
-  num_leaves: 40
   learning_rate: 0.05
   reg_lambda: 2
-  metric: rmse
-  verbosity: -1
+  loss_function: RMSE
+  task_type: GPU
 
 ctb_early_stopping_rounds: 20
 ctb_verbose_eval: 25

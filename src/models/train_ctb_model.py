@@ -55,7 +55,7 @@ def load_processed_training_data(input_filepath):
 
 
 def start_cv_run(train_df, label, params, splits, verbose_eval,
-                 num_boost_round, early_stopping_rounds, output_filepath):
+                 early_stopping_rounds, output_filepath):
     """
     Starts a Cross Validation Run with the parameters provided.
     Scores will be documented and models will be saved.
@@ -68,10 +68,12 @@ def start_cv_run(train_df, label, params, splits, verbose_eval,
             with timer("~~~~ Fold %d of %d ~~~~" % (i + 1, splits)):
                 x_train, x_valid = train_df.iloc[train_index], train_df.iloc[test_index]
                 y_train, y_valid = label[train_index], label[test_index]
+                cat_features = list(x_train.select_dtypes(include=['category']).columns)
 
-                ctb_model = ctb.CatBoost(params=params)
+                ctb_model = ctb.CatBoostRegressor(**params)
                 ctb_model.fit(x_train,
                               y_train,
+                              cat_features=cat_features,
                               eval_set=(x_valid, y_valid),
                               verbose_eval=verbose_eval,
                               early_stopping_rounds=early_stopping_rounds)
