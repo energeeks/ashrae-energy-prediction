@@ -26,9 +26,25 @@ lgbm_params:
   metric: rmse
   verbosity: -1
 
-num_boost_round: 5
-early_stopping_rounds: 2
-verbose_eval: 25
-splits_for_cv: 2
+lgbm_num_boost_round: 5
+lgbm_early_stopping_rounds: 2
+lgbm_verbose_eval: 25
+lgbm_splits_for_cv: 2
+
+##########################################################################
+# DEFINE PARAMETERS FOR THE CatBoost MODEL                                     #
+###########################################################################
+ctb_params:
+  iterations: 500
+  objective: regression
+  num_leaves: 40
+  learning_rate: 0.05
+  reg_lambda: 2
+  metric: rmse
+  verbosity: -1
+
+ctb_early_stopping_rounds: 20
+ctb_verbose_eval: 25
+ctb_splits_for_cv: 3
 
 ###########################################################################
