@@ -29,7 +29,7 @@ lgbm_params:
   metric: rmse
   verbosity: -1
 
-num_boost_round: 5
+num_boost_round: 500
 early_stopping_rounds: 2
 verbose_eval: 25
 splits_for_cv: 2
