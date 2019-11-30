@@ -40,8 +40,8 @@ def main(data_dir, output_dir):
         weather_test_df = weather_test_df.merge(site_df, on="site_id", how="left")
 
     with timer("Localizing weather timestamp"):
-        weather_train_df = localize_timestamp(weather_train_df)
-        weather_test_df = localize_timestamp(weather_test_df)
+        weather_train_df = localize_weather_timestamp(weather_train_df)
+        weather_test_df = localize_weather_timestamp(weather_test_df)
 
     with timer("Merging main and weather"):
         train_df = train_df.merge(weather_train_df, on=["site_id", "timestamp"], how="left")
@@ -120,10 +120,11 @@ def split_column_types(column_types):
     return dtype, parse_dates, converters
 
 
-def localize_timestamp(df):
-    df.sort_values(by="timestamp", inplace=True)  # Sort for drop_duplicates
+def localize_weather_timestamp(df):
+    key = ["site_id", "timestamp"]
+    df.sort_values(by=key, inplace=True)  # Sort for drop_duplicates
     df["timestamp"] = df.apply(localize_row_timestamp, axis=1)
-    df.drop_duplicates(subset="timestamp", keep="last", inplace=True)  # Because of DST we can have duplicates here
+    df.drop_duplicates(subset=key, keep="last", inplace=True)  # Because of DST we can have duplicates here
     df.reset_index(drop=True, inplace=True)
     return df
 
