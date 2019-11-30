@@ -1,10 +1,11 @@
 import os
 import random
-import yaml
+
 import click
 import lightgbm as lgb
 import numpy as np
 import pandas as pd
+import yaml
 from sklearn.model_selection import KFold
 
 from src.timer import timer
@@ -43,7 +44,8 @@ def main(mode, input_filepath, output_filepath):
         start_cv_run(train_df, label, params, splits, verbose_eval,
                      num_boost_round, early_stopping_rounds, output_filepath)
     elif mode == "daywise_cv":
-        start_daywise_cv_run(train_df, label, params, num_boost_round, early_stopping_rounds, output_filepath)
+        start_daywise_cv_run(train_df, label, params, splits, verbose_eval, num_boost_round, early_stopping_rounds,
+                             output_filepath)
     elif mode == "by_meter":
         start_full_by_meter_run(train_df, label, params, verbose_eval,
                                 num_boost_round, early_stopping_rounds, output_filepath)
@@ -133,7 +135,7 @@ def start_full_by_building_run(train_df, label, params, splits, verbose_eval,
         train_by_building = train_by_building.reset_index(drop=True)
         label = train_by_building["label"]
         train_by_building = train_by_building.drop(columns=["building_id", "label"], axis=1)
-        with timer("Performing " + str(splits) + " fold cross-validation on building "\
+        with timer("Performing " + str(splits) + " fold cross-validation on building " \
                    + str(b)):
             kf = KFold(n_splits=splits, shuffle=False, random_state=1337)
             for i, (train_index, test_index) in enumerate(kf.split(train_by_building, label)):
@@ -192,14 +194,14 @@ def start_cv_run(train_df, label, params, splits, verbose_eval,
         evaluate_cv_results(cv_results)
 
 
-def start_daywise_cv_run(train_df, label, params, num_boost_round, early_stopping_rounds, output_filepath):
+def start_daywise_cv_run(train_df, label, params, splits, verbose_eval, num_boost_round, early_stopping_rounds,
+                         output_filepath):
     """
     Starts a Cross Validation Run with the parameters provided.
     Scores will be documented and models will be saved.
     """
     output_filepath = output_filepath + "_daywise_cv"
     cv_results = []
-    splits = 2
     with timer("Performing " + str(splits) + " fold cross-validation"):
         indices = []
         for i in range(splits):
@@ -217,7 +219,6 @@ def start_daywise_cv_run(train_df, label, params, num_boost_round, early_stoppin
                 valid_lgb_df = lgb.Dataset(data=x_valid, label=y_valid)
 
                 valid_sets = [train_lgb_df, valid_lgb_df]
-                verbose_eval = 25
                 evals_result = dict()
                 lgbm_model = lgb.train(params=params,
                                        train_set=train_lgb_df,
