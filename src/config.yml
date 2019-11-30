@@ -27,7 +27,6 @@ use_leaks: False
 # DEFINE COLUMNS TO BE DROPPED                                                #
 ###############################################################################
 drop:
-  - timestamp
   - month
   - sea_level_pressure
   - wind_direction
