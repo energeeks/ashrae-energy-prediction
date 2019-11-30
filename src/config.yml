@@ -12,6 +12,9 @@ drop:
   - sea_level_pressure
   - wind_direction
   - wind_speed
+  - timezone
+  - country_code
+  - location
 
 ##########################################################################
 # DEFINE PARAMETERS FOR THE LGBM MODEL                                     #
@@ -26,9 +29,9 @@ lgbm_params:
   metric: rmse
   verbosity: -1
 
-num_boost_round: 5
-early_stopping_rounds: 2
+num_boost_round: 1000
+early_stopping_rounds: 100
 verbose_eval: 25
-splits_for_cv: 2
+splits_for_cv: 3
 
 ###########################################################################

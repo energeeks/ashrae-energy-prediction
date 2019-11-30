@@ -27,7 +27,7 @@ requirements: test_environment
 
 ## Make Dataset
 data: requirements
-	$(PYTHON_INTERPRETER) src/data/make_dataset.py data/raw data/interim
+	$(PYTHON_INTERPRETER) src/data/make_dataset.py data data/interim
 
 ## Make Features
 features:
