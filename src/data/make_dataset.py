@@ -121,7 +121,10 @@ def split_column_types(column_types):
 
 
 def localize_timestamp(df):
+    df.sort_values(by="timestamp", inplace=True)  # Sort for drop_duplicates
     df["timestamp"] = df.apply(localize_row_timestamp, axis=1)
+    df.drop_duplicates(subset="timestamp", keep="last", inplace=True)  # Because of DST we can have duplicates here
+    df.reset_index(drop=True, inplace=True)
     return df
 
 
