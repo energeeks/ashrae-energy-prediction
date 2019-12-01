@@ -1,6 +1,7 @@
 # This is merely a script which kicks of a hyperparameter search using
 # Bayesian optimization.
 # Thanks to https://github.com/MBKraus/Hyperopt for input and ideas!
+import os
 import pandas as pd
 import pickle
 import numpy as np
@@ -16,7 +17,6 @@ def main():
     # SET PARAMETER FOR SEARCH HERE
     ################################################################################
     params_hyperopt = {
-        "boosting_type": hp.choice("boosting_type", ["gbdt", "dart"]),
         "num_leaves": scope.int(hp.quniform("num_leaves", 5, 4096, 10)),
         "min_data_in_leaf": scope.int(hp.quniform("min_data_in_leaf", 10, 50, 1)),
         "feature_fraction": hp.uniform("feature_fraction", 0.4, 1.0),
@@ -66,6 +66,7 @@ def main():
     print("The search proposes these hyperparameters:")
     print(best_param)
 
+    os.makedirs("data/hyperopt/lgbm", exist_ok=True)
     with open("data/hyperopt/lgbm/best_param.pkl", "wb") as handle:
         pickle.dump(best_param, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
@@ -75,7 +76,7 @@ def main():
 
 def load_processed_training_data(input_filepath):
     """
-    Loads processed data and returns a xgb Matrix with distinguished label
+    Loads processed data and returns a dataframe with distinguished label
     column.
     """
     train_df = pd.read_pickle(input_filepath + "/train_data.pkl")
