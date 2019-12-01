@@ -2,6 +2,7 @@
 # Bayesian optimization.
 # Thanks to https://github.com/MBKraus/Hyperopt for input and ideas!
 import pandas as pd
+import pickle
 import numpy as np
 import lightgbm as lgb
 from sklearn.model_selection import KFold
@@ -15,16 +16,25 @@ def main():
     # SET PARAMETER FOR SEARCH HERE
     ################################################################################
     params_hyperopt = {
-        'learning_rate': hp.loguniform('learning_rate', np.log(0.01), np.log(1)),
-        'max_depth': scope.int(hp.quniform('max_depth', 5, 15, 1)),
-        'n_estimators': scope.int(hp.quniform('n_estimators', 5, 35, 1)),
-        'num_leaves': scope.int(hp.quniform('num_leaves', 5, 50, 1)),
-        'boosting_type': hp.choice('boosting_type', ['gbdt', 'dart']),
-        'colsample_bytree': hp.uniform('colsample_by_tree', 0.6, 1.0),
-        'reg_lambda': hp.uniform('reg_lambda', 0.0, 1.0),
+        "boosting_type": hp.choice("boosting_type", ["gbdt", "dart"]),
+        "num_leaves": scope.int(hp.quniform("num_leaves", 5, 4096, 10)),
+        "min_data_in_leaf": scope.int(hp.quniform("min_data_in_leaf", 10, 50, 1)),
+        "feature_fraction": hp.uniform("feature_fraction", 0.4, 1.0),
+        "min_split_gain": hp.uniform("min_split_gain", 0, 0.5),
+        "bagging_fraction": hp.uniform("bagging_fraction", 0.4, 1.0),
+        "reg_alpha": hp.uniform("reg_alpha", 0.0, 4.0),
+        "reg_lambda": hp.uniform("reg_lambda", 0.0, 4.0),
+    }
+
+    params_static = {
+        "learning_rate": 0.05,
+        "num_threads": 20,
+        "device_type": "cpu",
+        "verbosity": -1
     }
 
     splits = 5
+    max_evals = 200
 
     ################################################################################
     with timer("Loading processed training data"):
@@ -33,11 +43,12 @@ def main():
 
     def objective_function(params):
         kf = KFold(n_splits=splits, shuffle=False, random_state=1337)
-        cv_results = lgb.cv(params,
+        final_params = dict(params, **params_static)
+        cv_results = lgb.cv(final_params,
                             train_df,
                             folds=kf,
                             num_boost_round=10000,
-                            early_stopping_rounds=100,
+                            early_stopping_rounds=50,
                             metrics="rmse",
                             seed=1337)
 
@@ -48,9 +59,18 @@ def main():
     best_param = fmin(objective_function,
                       params_hyperopt,
                       algo=tpe.suggest,
-                      max_evals=100,
+                      max_evals=max_evals,
                       trials=trials,
-                      rstate=1337)
+                      rstate=np.random.RandomState(1337))
+
+    print("The search proposes these hyperparameters:")
+    print(best_param)
+
+    with open("data/hyperopt/lgbm/best_param.pkl", "wb") as handle:
+        pickle.dump(best_param, handle, protocol=pickle.HIGHEST_PROTOCOL)
+
+    with open("data/hyperopt/lgbm/trials.pkl", "wb") as handle:
+        pickle.dump(trials, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
 
 def load_processed_training_data(input_filepath):
