@@ -35,7 +35,7 @@ lgbm_splits_for_cv: 2
 # DEFINE PARAMETERS FOR THE CatBoost MODEL                               #
 ##########################################################################
 ctb_params:
-  iterations: 500
+  iterations: 99999
   learning_rate: 0.05
   reg_lambda: 2
   loss_function: RMSE
@@ -43,6 +43,6 @@ ctb_params:
 
 ctb_early_stopping_rounds: 20
 ctb_verbose_eval: 25
-ctb_splits_for_cv: 3
+ctb_splits_for_cv: 4
 
 ###########################################################################

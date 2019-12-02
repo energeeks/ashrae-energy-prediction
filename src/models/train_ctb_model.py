@@ -92,38 +92,5 @@ def save_model(output_filepath, model):
     click.echo("Model successfully saved in folder: " + output_filepath)
 
 
-def evaluate_cv_results(cv_results):
-    """
-    Prints overview of the respective folds and stores the result in
-    models/cv_eval.
-    """
-    summary = {
-        "fold": [],
-        "eval_loss": [],
-        "train_loss": []
-    }
-
-    click.echo("Fold summary (Loss):")
-    for i, metrics in enumerate(cv_results):
-        eval_loss = float([x[-1] for x in list(metrics["eval"].values())][0])
-        train_loss = float([x[-1] for x in list(metrics["train_loss"].values())][0])
-        print("{0}|\tEval:\t{1:.3f}\t|\ttrain:\t{2:.3f}".format(i, eval_loss, train_loss))
-        summary["fold"].append(i)
-        summary["eval_loss"].append(eval_loss)
-        summary["train_loss"].append(train_loss)
-
-    avg_eval_loss = sum(summary["eval_loss"]) / len(summary["eval_loss"])
-    avg_train_loss = sum(summary["train_loss"]) / len(summary["train_loss"])
-    print("Average Eval Loss:\t{0:.3f}\nAverage Train Loss:\t{1:.3f}".format(avg_eval_loss, avg_train_loss))
-
-    summary = pd.DataFrame.from_dict(summary)
-    csv_path = "models/cv_eval"
-    os.makedirs(csv_path, exist_ok=True)
-    files_in_dir = os.listdir(csv_path)
-    max_version = max([int(file[:4]) for file in files_in_dir], default=0)
-    new_version = str(max_version + 1).zfill(4)
-    summary.to_csv(csv_path + "/" + new_version + ".csv")
-
-
 if __name__ == '__main__':
     main()
