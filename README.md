@@ -1,7 +1,27 @@
-EnerGeeks
-==============================
+ASHRAE - Great Energy Predictor III Challenge
+====================================
 
-Predict Energy Consumption of Buildings with Ease
+Who are we?
+-------------
+We are computer science & statistics students at LMU Munich and this project is happening as part of a Data Science Practical. Our plan is to participate in the associated Kaggle Challenge and subsequently build a product surrounding the trained model.
+
+Have fun checking out our stuff!
+
+Cheers
+
+Challenge Description
+------------
+
+- Q: How much does it cost to cool a skyscraper in the summer?
+- A: A lot! And not just in dollars, but in environmental impact.
+
+Thankfully, significant investments are being made to improve building efficiencies to reduce costs and emissions. So, are the improvements working? That’s where you come in. Current methods of estimation are fragmented and do not scale well. Some assume a specific meter type or don’t work with different building types.
+
+Developing energy savings has two key elements: Forecasting future energy usage without improvements, and forecasting energy use after a specific set of improvements have been implemented, like the installation and purchase of investment-grade meters, whose prices continue to fall. One issue preventing more aggressive growth of the energy markets are the lack of cost-effective, accurate, and scalable procedures for forecasting energy use.
+
+In this competition, you’ll develop accurate predictions of metered building energy usage in the following areas: chilled water, electric, natural gas, hot water, and steam meters. The data comes from over 1,000 buildings over a three-year timeframe.
+
+With better estimates of these energy-saving investments, large scale investors and financial institutions will be more inclined to invest in this area to enable progress in building efficiencies.
 
 Project Organization
 ------------
