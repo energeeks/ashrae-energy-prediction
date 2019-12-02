@@ -8,6 +8,7 @@ import numpy as np
 import pandas as pd
 import pytz
 from dotenv import find_dotenv, load_dotenv
+import yaml
 
 from src.timer import timer
 
@@ -22,6 +23,8 @@ def main(data_dir, output_dir):
     """
     logger = logging.getLogger(__name__)
     logger.info('making final data set from raw data')
+    with open("src/config.yml", 'r') as ymlfile:
+        cfg = yaml.load(ymlfile, Loader=yaml.FullLoader)
 
     with timer("Loading data"):
         train_df = load_main_csv(data_dir + "/raw/train.csv")
@@ -39,9 +42,10 @@ def main(data_dir, output_dir):
         weather_train_df = weather_train_df.merge(site_df, on="site_id", how="left")
         weather_test_df = weather_test_df.merge(site_df, on="site_id", how="left")
 
-    with timer("Localizing weather timestamp"):
-        weather_train_df = localize_weather_timestamp(weather_train_df)
-        weather_test_df = localize_weather_timestamp(weather_test_df)
+    if cfg["localize_timestamps"]:
+        with timer("Localizing weather timestamp"):
+            weather_train_df = localize_weather_timestamp(weather_train_df)
+            weather_test_df = localize_weather_timestamp(weather_test_df)
 
     with timer("Merging main and weather"):
         train_df = train_df.merge(weather_train_df, on=["site_id", "timestamp"], how="left")
