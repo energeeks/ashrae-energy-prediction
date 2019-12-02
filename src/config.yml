@@ -52,11 +52,25 @@ lgbm_params:
   reg_lambda: 2
   metric: rmse
   verbosity: -1
+  
+lgbm_num_boost_round: 5
+lgbm_early_stopping_rounds: 2
+lgbm_verbose_eval: 25
+lgbm_splits_for_cv: 2
 
-num_boost_round: 99999
-early_stopping_rounds: 50
-verbose_eval: 50
-splits_for_cv: 4
+##########################################################################
+# DEFINE PARAMETERS FOR THE CatBoost MODEL                               #
+##########################################################################
+ctb_params:
+  iterations: 99999
+  learning_rate: 0.05
+  reg_lambda: 2
+  loss_function: RMSE
+  task_type: GPU
+
+ctb_early_stopping_rounds: 20
+ctb_verbose_eval: 25
+ctb_splits_for_cv: 4
 
 ###############################################################################
 
