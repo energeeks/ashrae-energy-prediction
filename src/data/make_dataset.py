@@ -6,118 +6,145 @@ from pathlib import Path
 import click
 import numpy as np
 import pandas as pd
+import pytz
 from dotenv import find_dotenv, load_dotenv
 
 from src.timer import timer
 
 
 @click.command()
-@click.argument('input_filepath', type=click.Path(exists=True))
-@click.argument('output_filepath', type=click.Path())
-def main(input_filepath, output_filepath):
-    """ Runs data processing scripts to turn raw data from (../raw) into
-        cleaned data ready for feature engineering (saved in ../interim).
+@click.argument('data_dir', type=click.Path(exists=True))
+@click.argument('output_dir', type=click.Path())
+def main(data_dir, output_dir):
+    """
+    Runs data processing scripts to turn raw data (data_dir/raw) and external data (data_dir/external) into cleaned data
+    ready for feature engineering (saved in output_dir).
     """
     logger = logging.getLogger(__name__)
     logger.info('making final data set from raw data')
 
     with timer("Loading data"):
-        train_df, test_df = load_raw_data(input_filepath)
+        train_df = load_main_csv(data_dir + "/raw/train.csv")
+        test_df = load_main_csv(data_dir + "/raw/test.csv")
+        weather_train_df = load_weather_csv(data_dir + "/raw/weather_train.csv")
+        weather_test_df = load_weather_csv(data_dir + "/raw/weather_test.csv")
+        building_df = load_building_csv(data_dir + "/raw/building_metadata.csv")
+        site_df = load_site_csv(data_dir + "/external/site_info.csv")
 
-    with timer("Reducing memory allocation of dataframes"):
-        train_df = reduce_mem_usage(train_df)
-        test_df = reduce_mem_usage(test_df)
+    with timer("Merging main and building"):
+        train_df = train_df.merge(building_df, on="building_id", how="left")
+        test_df = test_df.merge(building_df, on="building_id", how="left")
 
-    with timer("Changing column types"):
-        train_df = adjust_column_types(train_df)
-        test_df = adjust_column_types(test_df)
+    with timer("Merging weather and site"):
+        weather_train_df = weather_train_df.merge(site_df, on="site_id", how="left")
+        weather_test_df = weather_test_df.merge(site_df, on="site_id", how="left")
+
+    with timer("Localizing weather timestamp"):
+        weather_train_df = localize_weather_timestamp(weather_train_df)
+        weather_test_df = localize_weather_timestamp(weather_test_df)
+
+    with timer("Merging main and weather"):
+        train_df = train_df.merge(weather_train_df, on=["site_id", "timestamp"], how="left")
+        test_df = test_df.merge(weather_test_df, on=["site_id", "timestamp"], how="left")
 
     with timer("Saving cleansed data"):
-        save_joined_data(train_df, test_df, output_filepath)
+        save_joined_data(train_df, test_df, output_dir)
 
 
-def load_raw_data(input_filepath):
-    """
-    Loads data from .csv files and performs necessary joins. Function returns
-    the training as well as the test set.
-    """
-
-    with timer("Loading csv files to memory"):
-        building_df = pd.read_csv(input_filepath + "/building_metadata.csv")
-        weather_train = pd.read_csv(input_filepath + "/weather_train.csv")
-        train_df = pd.read_csv(input_filepath + "/train.csv")
-        weather_test = pd.read_csv(input_filepath + "/weather_test.csv")
-        test_df = pd.read_csv(input_filepath + "/test.csv")
-
-    with timer("Performing join operations"):
-        train_df = train_df.merge(building_df, left_on="building_id", right_on="building_id", how="left")
-        train_df = train_df.merge(weather_train, left_on=["site_id", "timestamp"], right_on=["site_id", "timestamp"],
-                                  how="left")
-        test_df = test_df.merge(building_df, left_on="building_id", right_on="building_id", how="left")
-        test_df = test_df.merge(weather_test, left_on=["site_id", "timestamp"], right_on=["site_id", "timestamp"],
-                                how="left")
-
-    return train_df, test_df
+def load_main_csv(csv):
+    column_types = {
+        "building_id": np.uint16,
+        "meter": np.uint8,
+        "timestamp": np.datetime64,
+        "meter_reading": np.float32,
+    }
+    dtype, parse_dates, converters = split_column_types(column_types)
+    return pd.read_csv(csv, dtype=dtype, parse_dates=parse_dates, converters=converters)
 
 
-def reduce_mem_usage(df, verbose=True):
-    """
-    Takes an dataframe as argument and adjusts the datatypes of the respective
-    columns to reduce memory allocation
-    """
-    numerics = ['int16', 'int32', 'int64', 'float16', 'float32', 'float64']
-    start_mem = df.memory_usage().sum() / 1024 ** 2
-    for col in df.columns:
-        col_type = df[col].dtypes
-        if col_type in numerics:
-            c_min = df[col].min()
-            c_max = df[col].max()
-            if str(col_type)[:3] == 'int':
-                if (c_min > np.iinfo(np.int8).min and
-                        c_max < np.iinfo(np.int8).max):
-                    df[col] = df[col].astype(np.int8)
-                elif (c_min > np.iinfo(np.int16).min and
-                      c_max < np.iinfo(np.int16).max):
-                    df[col] = df[col].astype(np.int16)
-                elif (c_min > np.iinfo(np.int32).min and
-                      c_max < np.iinfo(np.int32).max):
-                    df[col] = df[col].astype(np.int32)
-                elif (c_min > np.iinfo(np.int64).min and
-                      c_max < np.iinfo(np.int64).max):
-                    df[col] = df[col].astype(np.int64)
-            else:
-                if (c_min > np.finfo(np.float16).min and
-                        c_max < np.finfo(np.float16).max):
-                    df[col] = df[col].astype(np.float16)
-                elif (c_min > np.finfo(np.float32).min and
-                      c_max < np.finfo(np.float32).max):
-                    df[col] = df[col].astype(np.float32)
-                else:
-                    df[col] = df[col].astype(np.float64)
-    end_mem = df.memory_usage().sum() / 1024 ** 2
-    reduced_mem = 100 * (start_mem - end_mem) / start_mem
-    if verbose:
-        print('Mem. usage decreased to {:5.2f} Mb ({:.1f}% reduction)'
-              .format(end_mem, reduced_mem))
+def load_weather_csv(csv):
+    column_types = {
+        "site_id": np.uint8,
+        "timestamp": np.datetime64,
+        "air_temperature": np.float16,
+        "cloud_coverage": np.float16,
+        "dew_temperature": np.float16,
+        "precip_depth_1_hr": np.float16,
+        "sea_level_pressure": np.float16,
+        "wind_direction": np.float16,
+        "wind_speed": np.float16,
+    }
+    dtype, parse_dates, converters = split_column_types(column_types)
+    return pd.read_csv(csv, dtype=dtype, parse_dates=parse_dates, converters=converters)
+
+
+def load_building_csv(csv):
+    column_types = {
+        "site_id": np.uint8,
+        "timezone": pytz.timezone,
+        "country_code": np.object,
+        "location": np.object,
+    }
+    dtype, parse_dates, converters = split_column_types(column_types)
+    return pd.read_csv(csv, dtype=dtype, parse_dates=parse_dates, converters=converters)
+
+
+def load_site_csv(csv):
+    column_types = {
+        "site_id": np.uint8,
+        "timezone": pytz.timezone,
+        "country_code": np.object,
+        "location": np.object,
+    }
+    dtype, parse_dates, converters = split_column_types(column_types)
+    return pd.read_csv(csv, delimiter=";", dtype=dtype, parse_dates=parse_dates, converters=converters)
+
+
+def split_column_types(column_types):
+    def is_parse_date(it):
+        return it == np.datetime64
+
+    def is_dtype(it):
+        try:
+            np.dtype(it)
+            return not is_parse_date(it)
+        except:
+            return False
+
+    def is_converter(it):
+        return not is_dtype(it) and not is_parse_date(it)
+
+    dtype = {k: v for k, v in column_types.items() if is_dtype(v)}
+    parse_dates = [k for k, v in column_types.items() if is_parse_date(v)]
+    converters = {k: v for k, v in column_types.items() if is_converter(v)}
+    return dtype, parse_dates, converters
+
+
+def localize_weather_timestamp(df):
+    key = ["site_id", "timestamp"]
+    df.sort_values(by=key, inplace=True)  # Sort for drop_duplicates
+    df["timestamp"] = df.apply(localize_row_timestamp, axis=1)
+    df.drop_duplicates(subset=key, keep="last", inplace=True)  # Because of DST we can have duplicates here
+    df.reset_index(drop=True, inplace=True)
     return df
 
 
-def adjust_column_types(data_frame):
-    """
-    Takes a data frame and parses certain columns to the desired type.
-    """
-    data_frame["timestamp"] = pd.to_datetime(data_frame["timestamp"])
-    return data_frame
+def localize_row_timestamp(row):
+    return convert_time_zone(row["timestamp"], to_tz=row["timezone"])
 
 
-def save_joined_data(train_df, test_df, output_filepath):
+def convert_time_zone(dt, from_tz=pytz.utc, to_tz=pytz.utc):
+    return dt.tz_localize(from_tz).tz_convert(to_tz).tz_localize(None)
+
+
+def save_joined_data(train_df, test_df, output_dir):
     """
     Takes the two joined dataframes and stores them for further engineering
     """
-    os.makedirs(output_filepath, exist_ok=True)
-    train_df.to_pickle(output_filepath + "/train_data.pkl")
-    test_df.to_pickle(output_filepath + "/test_data.pkl")
-    click.echo("Data successfully saved in folder: " + output_filepath)
+    os.makedirs(output_dir, exist_ok=True)
+    train_df.to_pickle(output_dir + "/train_data.pkl")
+    test_df.to_pickle(output_dir + "/test_data.pkl")
+    click.echo("Data successfully saved in folder: " + output_dir)
 
 
 if __name__ == '__main__':
