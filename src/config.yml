@@ -41,16 +41,22 @@ drop:
 lgbm_params:
   objective: regression
   boosting: gbdt
-  num_leaves: 40
   learning_rate: 0.05
-  feature_fraction: 0.85
+  bagging_fraction: 0.7604703318859309
+  feature_fraction: 0.9556886502673504
+  min_data_in_leaf: 15
+  min_split_gain: 0.4673249117301946
+  num_leaves: 3480
+  reg_alpha: 3.9145881110580314
+  reg_lambda: 1.2467155815765916
   reg_lambda: 2
   metric: rmse
   verbosity: -1
 
-num_boost_round: 1000
-early_stopping_rounds: 100
-verbose_eval: 25
-splits_for_cv: 3
+num_boost_round: 99999
+early_stopping_rounds: 50
+verbose_eval: 50
+splits_for_cv: 4
 
 ###############################################################################
+
