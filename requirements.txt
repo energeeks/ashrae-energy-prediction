@@ -11,6 +11,7 @@ kaggle
 lightgbm
 pyarrow
 catboost
+hyperopt
 
 # local package
 -e .

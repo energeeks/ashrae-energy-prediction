@@ -1,7 +1,44 @@
-EnerGeeks
-==============================
+ASHRAE - Great Energy Predictor III Challenge
+====================================
 
-Predict Energy Consumption of Buildings with Ease
+Who are we?
+-------------
+We are computer science & statistics students at LMU Munich and this project is happening as part of a Data Science Practical. Our plan is to participate in the associated Kaggle Challenge and subsequently build a product surrounding the trained model.
+
+Have fun checking out our stuff!
+
+Cheers
+
+Challenge Description
+------------
+
+- Q: How much does it cost to cool a skyscraper in the summer?
+- A: A lot! And not just in dollars, but in environmental impact.
+
+Thankfully, significant investments are being made to improve building efficiencies to reduce costs and emissions. So, are the improvements working? That’s where you come in. Current methods of estimation are fragmented and do not scale well. Some assume a specific meter type or don’t work with different building types.
+
+Developing energy savings has two key elements: Forecasting future energy usage without improvements, and forecasting energy use after a specific set of improvements have been implemented, like the installation and purchase of investment-grade meters, whose prices continue to fall. One issue preventing more aggressive growth of the energy markets are the lack of cost-effective, accurate, and scalable procedures for forecasting energy use.
+
+In this competition, you’ll develop accurate predictions of metered building energy usage in the following areas: chilled water, electric, natural gas, hot water, and steam meters. The data comes from over 1,000 buildings over a three-year timeframe.
+
+With better estimates of these energy-saving investments, large scale investors and financial institutions will be more inclined to invest in this area to enable progress in building efficiencies.
+
+The Data Set
+---------------
+
+The provided data consists of ~20 mio. rows for training (one year timespan) and ~40 mio. rows for testing (two years timespan). The target variable are the hourly readings from one of four meters {0: electricity, 1: chilledwater, 2: steam, hotwater: 3}. For building the model the data provides following features out of the box:
+
+
+- building_id --> Foreign key for the building metadata.
+- meter ---> The meter id code. Read as {0: electricity, 1: chilledwater, 2: steam, hotwater: 3}
+- timestamp --> Hour of the measurement
+- site_id --> Identifier of the site the building is on
+- primary_use ---> Primary category of activities for the building 
+- square_feet --> Floor area of the building
+- year_built ---> build year of the building
+- floorcount - Number of floors of the building
+
+Further weather data has been provided, which comes with air_temperature, cloud_coverage, dew_temperature, precip_depth_1_hr, sea_level_pressure, wind_direction and wind_speed.
 
 Project Organization
 ------------
@@ -51,7 +88,3 @@ Project Organization
     │
     └── tox.ini            <- tox file with settings for running tox; see tox.testrun.org
 
-
---------
-
-<p><small>Project based on the <a target="_blank" href="https://drivendata.github.io/cookiecutter-data-science/">cookiecutter data science project template</a>. #cookiecutterdatascience</small></p>

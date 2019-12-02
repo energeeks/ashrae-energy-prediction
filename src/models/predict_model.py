@@ -1,11 +1,13 @@
 import os
-import yaml
+
 import click
 import lightgbm as lgb
 import numpy as np
 import pandas as pd
 import xgboost as xgb
 import catboost as ctb
+import yaml
+
 from src.timer import timer
 
 
@@ -230,9 +232,38 @@ def create_submission_file(row_ids, predictions, use_leaks=False):
             predictions = add_leaks_to_submission(predictions)
 
     submission = pd.DataFrame({"row_id": row_ids, "meter_reading": predictions})
+
+    validate_submission(submission)
+
     submission_dir = "submissions"
     os.makedirs(submission_dir, exist_ok=True)
     submission.to_csv(submission_dir + "/submission.csv", index=False)
+
+
+def validate_submission(submission_df):
+    submission_error = get_submission_error(submission_df)
+    if submission_error:
+        click.secho(submission_error, err=True, fg="red", bold=True)
+        click.pause()
+
+
+def get_submission_error(submission_df):
+    actual_columns = submission_df.columns
+    expected_columns = ["row_id", "meter_reading"]
+    if list(actual_columns) != expected_columns:
+        return "Submission has incorrect columns: " + str(list(actual_columns)) + ", expected: " + str(expected_columns)
+
+    actual_row_count = len(submission_df)
+    expected_row_count = 41697600
+    if actual_row_count < expected_row_count:
+        return "Submission has to few rows: " + str(actual_row_count) + ", expected: " + str(expected_row_count)
+    if actual_row_count > expected_row_count:
+        return "Submission has to many rows: " + str(actual_row_count) + ", expected: " + str(expected_row_count)
+
+    if any(submission_df["row_id"].values != np.arange(expected_row_count)):
+        return "Submission has incorrect row_ids"
+
+    return None
 
 
 def add_leaks_to_submission(predictions):

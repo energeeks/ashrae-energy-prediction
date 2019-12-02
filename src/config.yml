@@ -1,31 +1,58 @@
-###########################################################################
-# SPECIFY IF LEAKS SHOULD BE USED OR NOT                                  #
-###########################################################################
+###############################################################################
+# PREPROCESSING OPTIONS                                                       #
+###############################################################################
+localize_timestamps: True
+circular_timestamp_encoding: False
+log_transform_square_feet: True
+encode_wind_direction: False
+fill_na_with_zero: False
+
+add_lag_features: True
+lag_columns:
+  - air_temperature
+  - dew_temperature
+  - cloud_coverage
+lag_windows:
+  - 6
+  - 24
+
+exclude_faulty_rows: True
+###############################################################################
+# SPECIFY IF LEAKS SHOULD BE USED OR NOT                                      #
+###############################################################################
 use_leaks: False
 
-###########################################################################
-# DEFINE COLUMNS TO BE DROPPED                                            #
-###########################################################################
+###############################################################################
+# DEFINE COLUMNS TO BE DROPPED                                                #
+###############################################################################
 drop:
   - timestamp
   - month
   - sea_level_pressure
   - wind_direction
   - wind_speed
+  - timezone
+  - country_code
+  - location
 
-##########################################################################
-# DEFINE PARAMETERS FOR THE LGBM MODEL                                   #
-###########################################################################
+###############################################################################
+# DEFINE PARAMETERS FOR THE LGBM MODEL                                        #
+###############################################################################
 lgbm_params:
   objective: regression
   boosting: gbdt
-  num_leaves: 40
   learning_rate: 0.05
-  feature_fraction: 0.85
+  bagging_fraction: 0.7604703318859309
+  feature_fraction: 0.9556886502673504
+  min_data_in_leaf: 15
+  min_split_gain: 0.4673249117301946
+  num_leaves: 3480
+  reg_alpha: 3.9145881110580314
+  reg_lambda: 1.2467155815765916
   reg_lambda: 2
   metric: rmse
   verbosity: -1
-
+  
 lgbm_num_boost_round: 5
 lgbm_early_stopping_rounds: 2
 lgbm_verbose_eval: 25
@@ -45,4 +72,5 @@ ctb_early_stopping_rounds: 20
 ctb_verbose_eval: 25
 ctb_splits_for_cv: 4
 
-###########################################################################
+###############################################################################
+

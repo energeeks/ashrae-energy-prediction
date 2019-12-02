@@ -18,8 +18,6 @@ def main(input_filepath, output_filepath):
     """
     with open("src/config.yml", 'r') as ymlfile:
         cfg = yaml.load(ymlfile, Loader=yaml.FullLoader)
-    # <TODO>
-    # ALL FEATURE ENGINEERING GOES IN HERE
 
     with timer("Loading interim data"):
         train_df, test_df = load_interim_data(input_filepath)
@@ -29,30 +27,35 @@ def main(input_filepath, output_filepath):
         test_df = encode_categorical_data(test_df)
 
     with timer("Encoding timestamp features"):
-        train_df = encode_timestamp(train_df, circular=False)
-        test_df = encode_timestamp(test_df, circular=False)
+        train_df = encode_timestamp(train_df, circular=cfg["circular_timestamp_encoding"])
+        test_df = encode_timestamp(test_df, circular=cfg["circular_timestamp_encoding"])
 
-    with timer("Taking the log of selected features"):
-        train_df["square_feet"] = np.log1p(train_df["square_feet"])
-        test_df["square_feet"] = np.log1p(test_df["square_feet"])
+    if cfg["log_transform_square_feet"]:
+        with timer("Taking the log of selected features"):
+            train_df["square_feet"] = np.log1p(train_df["square_feet"])
+            test_df["square_feet"] = np.log1p(test_df["square_feet"])
 
     with timer("Calculating age of buildings"):
         train_df = calculate_age_of_building(train_df)
         test_df = calculate_age_of_building(test_df)
 
-    # with timer("Encoding wind_direction features"):
-    #     train_df = encode_wind_direction(train_df)
-    #     test_df = encode_wind_direction(test_df)
-    # Not necessary for LGBM hence currently disabled
-    # train_df.fillna(0)
-    # test_df.fillna(0)
+    if cfg["encode_wind_direction"]:
+        with timer("Encoding wind_direction features"):
+            train_df = encode_wind_direction(train_df)
+            test_df = encode_wind_direction(test_df)
 
-    with timer("Adding Lag Features"):
-        train_df = add_lag_features(train_df)
-        test_df = add_lag_features(test_df)
+    if cfg["fill_na_with_zero"]:
+        train_df.fillna(0)
+        test_df.fillna(0)
 
-    with timer("Exclude faulty data and outliers"):
-        train_df = exclude_faulty_readings(train_df)
+    if cfg["add_lag_features"]:
+        with timer("Adding Lag Features"):
+            train_df = add_lag_features(train_df, cfg["lag_columns"], cfg["lag_windows"])
+            test_df = add_lag_features(test_df, cfg["lag_columns"], cfg["lag_windows"])
+
+    if cfg["exclude_faulty_rows"]:
+        with timer("Exclude faulty data and outliers"):
+            train_df = exclude_faulty_readings(train_df)
 
     with timer("Sort training set"):
         train_df.sort_values("timestamp", inplace=True)
@@ -116,9 +119,7 @@ def calculate_age_of_building(data_frame):
     return data_frame
 
 
-def add_lag_features(data_frame):
-    cols = ["air_temperature", "dew_temperature", "cloud_coverage"]
-    windows = [6, 24]
+def add_lag_features(data_frame, cols, windows):
     for col in cols:
         for window in windows:
             data_frame["{}_{}_lag".format(col, window)] = data_frame \
