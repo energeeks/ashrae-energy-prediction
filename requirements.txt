@@ -12,6 +12,7 @@ lightgbm
 pyarrow
 catboost
 hyperopt
+shap
 
 # local package
 -e .
