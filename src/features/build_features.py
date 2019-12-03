@@ -1,5 +1,5 @@
 import os
-
+import yaml
 import click
 import numpy as np
 import pandas as pd
@@ -16,8 +16,8 @@ def main(input_filepath, output_filepath):
         (../interim) into data which is ready for usage in ML models
         (saved in ../processed).
     """
-    # <TODO>
-    # ALL FEATURE ENGINEERING GOES IN HERE
+    with open("src/config.yml", 'r') as ymlfile:
+        cfg = yaml.load(ymlfile, Loader=yaml.FullLoader)
 
     with timer("Loading interim data"):
         train_df, test_df = load_interim_data(input_filepath)
@@ -27,36 +27,43 @@ def main(input_filepath, output_filepath):
         test_df = encode_categorical_data(test_df)
 
     with timer("Encoding timestamp features"):
-        train_df = encode_timestamp(train_df, circular=False)
-        test_df = encode_timestamp(test_df, circular=False)
+        train_df = encode_timestamp(train_df, circular=cfg["circular_timestamp_encoding"])
+        test_df = encode_timestamp(test_df, circular=cfg["circular_timestamp_encoding"])
 
-    with timer("Taking the log of selected features"):
-        train_df["square_feet"] = np.log1p(train_df["square_feet"])
-        test_df["square_feet"] = np.log1p(test_df["square_feet"])
+    if cfg["log_transform_square_feet"]:
+        with timer("Taking the log of selected features"):
+            train_df["square_feet"] = np.log1p(train_df["square_feet"])
+            test_df["square_feet"] = np.log1p(test_df["square_feet"])
 
     with timer("Calculating age of buildings"):
         train_df = calculate_age_of_building(train_df)
         test_df = calculate_age_of_building(test_df)
 
-    # with timer("Encoding wind_direction features"):
-    #     train_df = encode_wind_direction(train_df)
-    #     test_df = encode_wind_direction(test_df)
+    if cfg["encode_wind_direction"]:
+        with timer("Encoding wind_direction features"):
+            train_df = encode_wind_direction(train_df)
+            test_df = encode_wind_direction(test_df)
 
-    # click.echo("Ensuring integrity of data...")
-    # <TODO>
-    # COLUMN CHECKS ALSO COME HERE
+    if cfg["fill_na_with_zero"]:
+        train_df.fillna(0)
+        test_df.fillna(0)
 
-    # Not necessary for LGBM hence currently disabled
-    # train_df.fillna(0)
-    # test_df.fillna(0)
+    if cfg["add_lag_features"]:
+        with timer("Adding Lag Features"):
+            train_df = add_lag_features(train_df, cfg["lag_columns"], cfg["lag_windows"])
+            test_df = add_lag_features(test_df, cfg["lag_columns"], cfg["lag_windows"])
+
+    if cfg["exclude_faulty_rows"]:
+        with timer("Exclude faulty data and outliers"):
+            train_df = exclude_faulty_readings(train_df)
 
     with timer("Sort training set"):
         train_df.sort_values("timestamp", inplace=True)
         train_df.reset_index(drop=True, inplace=True)
 
     with timer("Dropping specified columns"):
-        train_df = drop_columns(train_df)
-        test_df = drop_columns(test_df)
+        train_df = drop_columns(train_df, cfg["drop"])
+        test_df = drop_columns(test_df, cfg["drop"])
 
     with timer("Save processed data"):
         save_processed_data(output_filepath, train_df, test_df)
@@ -64,7 +71,7 @@ def main(input_filepath, output_filepath):
 
 def load_interim_data(input_filepath):
     """
-    Loads interim data which already is preserved as python object due to
+T    Loads interim data which already is preserved as python object due to
     previous processing steps
     """
     train_df = pd.read_pickle(input_filepath + "/train_data.pkl")
@@ -112,6 +119,27 @@ def calculate_age_of_building(data_frame):
     return data_frame
 
 
+def add_lag_features(data_frame, cols, windows):
+    for col in cols:
+        for window in windows:
+            data_frame["{}_{}_lag".format(col, window)] = data_frame \
+                .groupby(["site_id", "building_id", "meter"])[col] \
+                .rolling(window, center=False) \
+                .mean().reset_index(drop=True)
+    return data_frame
+
+
+def exclude_faulty_readings(data_frame):
+    """"
+    Cleanses the provided data_frame from faulty readings and/or outlier data.
+    Special thanks goes to https://www.kaggle.com/purist1024/ashrae-simple-data
+    -cleanup-lb-1-08-no-leaks for providing a detailed guide and identification
+    of the problematical rows.
+    """
+    rows_to_drop = pd.read_csv("data/external/rows_to_drop.csv")
+    return data_frame.drop(index=rows_to_drop.iloc[:, 0])
+
+
 def encode_wind_direction(data_frame):
     """
     Encode the wind_direction using a cyclic encoding.
@@ -124,11 +152,7 @@ def encode_wind_direction(data_frame):
     return data_frame
 
 
-def drop_columns(data_frame):
-    drop = ["timestamp",
-            "sea_level_pressure",
-            "wind_direction",
-            "wind_speed"]
+def drop_columns(data_frame, drop):
     data_frame.drop(columns=drop, inplace=True)
     return data_frame
 

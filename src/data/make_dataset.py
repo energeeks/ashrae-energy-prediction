@@ -131,7 +131,7 @@ def split_column_types(column_types):
     converters = {k: v for k, v in column_types.items() if is_converter(v)}
     return dtype, parse_dates, converters
 
-
+  
 def impute_weather_data(data_frame):
     data_frame["timestamp"] = pd.to_datetime(data_frame["timestamp"])
     min_date = data_frame["timestamp"].dropna().min()
@@ -191,7 +191,6 @@ def localize_weather_timestamp(df):
     df.drop_duplicates(subset=key, keep="last", inplace=True)  # Because of DST we can have duplicates here
     df.reset_index(drop=True, inplace=True)
     return df
-
 
 def localize_row_timestamp(row):
     return convert_time_zone(row["timestamp"], to_tz=row["timezone"])
