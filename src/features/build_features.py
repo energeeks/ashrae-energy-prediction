@@ -111,6 +111,9 @@ def encode_timestamp(data_frame, circular=False):
         data_frame["hour"] = pd.Categorical(timestamp.dt.hour)
         data_frame["weekday"] = pd.Categorical(timestamp.dt.dayofweek)
         data_frame["month"] = pd.Categorical(timestamp.dt.month)
+
+    hourofyear = ((timestamp.dt.dayofyear - 1) * 24 + timestamp.dt.hour)
+    data_frame["hourofyear_sin"] = np.sin(2 * np.pi * hourofyear / (24 * 366))
     return data_frame
 
 
