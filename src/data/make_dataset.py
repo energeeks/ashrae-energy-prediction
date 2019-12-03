@@ -40,15 +40,15 @@ def main(data_dir, output_dir):
     with timer("Merging main and building"):
         train_df = train_df.merge(building_df, on="building_id", how="left")
         test_df = test_df.merge(building_df, on="building_id", how="left")
-
-    with timer("Merging weather and site"):
-        weather_train_df = weather_train_df.merge(site_df, on="site_id", how="left")
-        weather_test_df = weather_test_df.merge(site_df, on="site_id", how="left")
-
+        
     if cfg["impute_weather_data"]:
         with timer("Impute missing weather data"):
             weather_train_df = impute_weather_data(weather_train_df)
             weather_test_df = impute_weather_data(weather_test_df)
+            
+    with timer("Merging weather and site"):
+        weather_train_df = weather_train_df.merge(site_df, on="site_id", how="left")
+        weather_test_df = weather_test_df.merge(site_df, on="site_id", how="left")
 
     if cfg["localize_timestamps"]:
         with timer("Localizing weather timestamp"):
@@ -177,7 +177,7 @@ def impute_weather_data(data_frame):
 
     # Assemble final weather frame
     weather_final = pd.DataFrame(data=weather_imputed, columns=weather_cols)
-    weather_final["timestamp"] = weather_timestamp.dt.strftime("%Y-%m-%d %H:%M:%S")
+    weather_final["timestamp"] = weather_timestamp
     weather_final["site_id"] = weather_site_ids
     weather_final = weather_final.drop(columns=["hour", "weekday", "month"], axis=1)
 
