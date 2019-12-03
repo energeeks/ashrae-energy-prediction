@@ -9,6 +9,7 @@ from dotenv import find_dotenv, load_dotenv
 from src.timer import timer
 from sklearn.preprocessing import StandardScaler
 from sklearn.experimental import enable_iterative_imputer
+from sklearn.ensemble import ExtraTreesRegressor
 from sklearn.impute import IterativeImputer
 
 
@@ -96,14 +97,17 @@ def impute_weather_data(data_frame):
     weather_timestamp = weather_imputed["timestamp"]
     weather_site_ids = weather_imputed["site_id"]
 
-    # Scale data for KNN
+    # Scale data for algorithm
     date_delta = pd.datetime.now() - weather_imputed["timestamp"]
     weather_imputed["timestamp"] = date_delta.dt.total_seconds()
     scaler = StandardScaler()
     weather_imputed = scaler.fit_transform(weather_imputed)
 
     # Impute missing values
-    imputer = IterativeImputer()
+    imputer = IterativeImputer(estimator=ExtraTreesRegressor(n_estimators=100, random_state=0), missing_values=np.nan,
+                               sample_posterior=False,
+                               max_iter=1000, tol=0.001,
+                               n_nearest_features=5, initial_strategy='median')
     weather_imputed = imputer.fit_transform(weather_imputed)
 
     # Rescale
