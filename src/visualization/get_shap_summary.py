@@ -20,13 +20,15 @@ def main():
     del test_df["row_id"]
 
     click.echo("Sample Rows for plot")
-    test_sample = test_df.sample(n=300000)
+    test_sample = test_df.sample(n=10000)
 
     click.echo("Get SHAP Values")
+    lgbm_model.params['objective'] = 'regression'
     shap_values = shap.TreeExplainer(lgbm_model).shap_values(test_sample)
 
     click.echo("Save Plot")
     shap.summary_plot(shap_values, test_sample, show=False)
+    plt.tight_layout()
     plt.savefig("reports/figures/shap_values.pdf")
 
 
