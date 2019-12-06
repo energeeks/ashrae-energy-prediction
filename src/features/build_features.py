@@ -43,6 +43,8 @@ def main(input_filepath, output_filepath):
         with timer("Taking the log of area per floor"):
             train_df["area_per_floor"] = np.log(train_df["area_per_floor"])
             test_df["area_per_floor"] = np.log(test_df["area_per_floor"])
+    
+    if cgf["label_building_outlier"]:
 
     with timer("Calculating age of buildings"):
         train_df = calculate_age_of_building(train_df)
