@@ -50,7 +50,6 @@ lgbm_params:
   num_leaves: 3480
   reg_alpha: 3.9145881110580314
   reg_lambda: 1.2467155815765916
-  reg_lambda: 2
   metric: rmse
   verbosity: -1
   
