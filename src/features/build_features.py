@@ -29,11 +29,20 @@ def main(input_filepath, output_filepath):
     with timer("Encoding timestamp features"):
         train_df = encode_timestamp(train_df, circular=cfg["circular_timestamp_encoding"])
         test_df = encode_timestamp(test_df, circular=cfg["circular_timestamp_encoding"])
+    
+    with timer("Create area per floor feature"):
+        train_df["area_per_floor"] = train_df["square_feet"] / train_df["floor_count"]
+        test_df["area_per_floor"] = test_df["square_feet"] / test_df["floor_count"]
 
     if cfg["log_transform_square_feet"]:
         with timer("Taking the log of selected features"):
             train_df["square_feet"] = np.log1p(train_df["square_feet"])
             test_df["square_feet"] = np.log1p(test_df["square_feet"])
+    
+    if cfg["log_transform_area_per_floor"]:
+        with timer("Taking the log of area per floor"):
+            train_df["area_per_floor"] = np.log(train_df["area_per_floor"])
+            test_df["area_per_floor"] = np.log(test_df["area_per_floor"])
 
     with timer("Calculating age of buildings"):
         train_df = calculate_age_of_building(train_df)

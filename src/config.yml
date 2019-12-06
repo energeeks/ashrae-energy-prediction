@@ -5,6 +5,7 @@ localize_timestamps: True
 impute_weather_data: True
 circular_timestamp_encoding: False
 log_transform_square_feet: True
+log_transform_area_per_floor: True
 encode_wind_direction: False
 fill_na_with_zero: False
 
