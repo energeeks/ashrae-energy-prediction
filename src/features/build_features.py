@@ -44,7 +44,15 @@ def main(input_filepath, output_filepath):
             train_df["area_per_floor"] = np.log(train_df["area_per_floor"])
             test_df["area_per_floor"] = np.log(test_df["area_per_floor"])
     
-    if cgf["label_building_outlier"]:
+    if cgf["label_square_feet_outlier"]:
+        with timer("Create outlier label for square feet"):
+            train_df["outlier_square_feet"] = label_outlier("square_feet", train_df)
+            test_df["outlier_square_feet"] = label_outlier("square_feet", test_df)
+    
+    if cfg["label_area_per_floor_outlier"]:
+        with timer("Create outlier label for area per floor"):
+            train_df["outlier_area_per_floor"] = label_outlier("area_per_floor", train_df)
+            test_df["outlier_area_per_floor"] = label_outlier("area_per_floor", test_df)
 
     with timer("Calculating age of buildings"):
         train_df = calculate_age_of_building(train_df)
@@ -123,6 +131,15 @@ def encode_timestamp(data_frame, circular=False):
         data_frame["weekday"] = pd.Categorical(timestamp.dt.dayofweek)
         data_frame["month"] = pd.Categorical(timestamp.dt.month)
     return data_frame
+
+def label_outlier(variable, df):
+    var = df[variable]
+    mn = np.mean(var)
+    std = np.std(var)
+    lower = mn - 2.5*std
+    upper = mn + 2.5*std
+    is_outlier = (var < lower) | (var > upper)
+    return(is_outlier)
 
 
 def calculate_age_of_building(data_frame):
