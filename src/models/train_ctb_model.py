@@ -24,7 +24,7 @@ def main(mode, input_filepath, output_filepath):
         train_df, label = load_processed_training_data(input_filepath)
 
     ###########################################################################
-    # DEFINE PARAMETERS FOR THE LGBM MODEL                                     #
+    # DEFINE PARAMETERS FOR THE CATBOOST MODEL                                     #
     ###########################################################################
     with open("src/config.yml", 'r') as ymlfile:
         cfg = yaml.load(ymlfile, Loader=yaml.FullLoader)

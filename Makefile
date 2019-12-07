@@ -44,6 +44,9 @@ endif
 ifeq (lgbm,$(MODEL))
 	$(PYTHON_INTERPRETER) src/models/train_lgbm_model.py $(MODE) data/processed models/lgbm
 endif
+ifeq (tf,$(MODEL))
+	$(PYTHON_INTERPRETER) src/models/train_tf_model.py $(MODE) data/processed models/tf
+endif
 
 ## Make Prediction
 predict:

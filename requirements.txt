@@ -2,7 +2,7 @@
 numpy
 matplotlib
 jupyter
-tensorflow
+tensorflow-gpu
 xgboost
 pandas
 seaborn
