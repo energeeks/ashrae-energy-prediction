@@ -43,7 +43,7 @@ def main(mode, input_filepath, output_filepath):
         start_cv_run(train_df, label, params, splits, verbose_eval,
                      num_boost_round, early_stopping_rounds, output_filepath)
     elif mode == "by_meter":
-        start_full_by_meter_run(train_df, label, params, verbose_eval,
+        start_full_by_meter_run(train_df, label, params, splits, verbose_eval,
                                 num_boost_round, early_stopping_rounds, output_filepath)
     elif mode == "by_building":
         start_full_by_building_run(train_df, label, params, splits, verbose_eval,
@@ -83,34 +83,45 @@ def start_full_training_run(train_df, label, params, verbose_eval,
         save_model(output_filepath, lgbm_model)
 
 
-def start_full_by_meter_run(train_df, label, params, verbose_eval, num_boost_round,
+def start_full_by_meter_run(train_df, label, params, splits, verbose_eval, num_boost_round,
                             early_stopping_rounds, output_filepath):
     """
     Divides the data into the four meter types and trains a model on each one
     """
-    output_filepath = output_filepath + "_by_meter"
-    train_by_meter = []
-    label_by_meter = []
-    for i in range(4):
-        is_meter = train_df["meter"] == i
-        train_temp = train_df[is_meter]
-        label_temp = label[is_meter]
-        train_by_meter.append(train_temp)
-        label_by_meter.append(label_temp)
+    output_main_dir = output_filepath + "_by_meter"
+    train_df["label"] = label
+    train_df = train_df.groupby("meter")
+    meter = [name for name, _ in train_df]
 
-    with timer("Building models and start training"):
-        for (train, label) in zip(train_by_meter, label_by_meter):
-            del train["meter"]
-            train_lgb_df = lgb.Dataset(data=train, label=label)
-            valid_sets = [train_lgb_df]
-            lgbm_model = lgb.train(params=params,
-                                   train_set=train_lgb_df,
-                                   num_boost_round=num_boost_round,
-                                   valid_sets=valid_sets,
-                                   verbose_eval=verbose_eval,
-                                   early_stopping_rounds=early_stopping_rounds)
-            with timer("Saving trained model"):
-                save_model(output_filepath, lgbm_model)
+    for m in meter:
+        click.echo("Starting training for Meter " + str(m) + ".")
+        train_by_meter = train_df.get_group(m)
+        train_by_meter = train_by_meter.reset_index(drop=True)
+        label = train_by_meter["label"]
+        train_by_meter = train_by_meter.drop(columns=["meter", "label"], axis=1)
+        with timer("Performing " + str(splits) + " fold cross-validation on building " \
+                   + str(m)):
+            kf = KFold(n_splits=splits, shuffle=False, random_state=1337)
+            for i, (train_index, test_index) in enumerate(kf.split(train_by_meter, label)):
+                with timer("~~~~ Fold %d of %d ~~~~" % (i + 1, splits)):
+                    x_train, x_valid = train_by_meter.iloc[train_index], train_by_meter.iloc[test_index]
+                    y_train, y_valid = label[train_index], label[test_index]
+
+                    train_lgb_df = lgb.Dataset(data=x_train, label=y_train)
+                    valid_lgb_df = lgb.Dataset(data=x_valid, label=y_valid)
+
+                    valid_sets = [train_lgb_df, valid_lgb_df]
+                    evals_result = dict()
+                    lgbm_model = lgb.train(params=params,
+                                           train_set=train_lgb_df,
+                                           num_boost_round=num_boost_round,
+                                           valid_sets=valid_sets,
+                                           valid_names=["train_loss", "eval"],
+                                           verbose_eval=verbose_eval,
+                                           evals_result=evals_result,
+                                           early_stopping_rounds=early_stopping_rounds)
+                    output_filepath = output_main_dir + "/" + str(m)
+                    save_model(output_filepath, lgbm_model)
 
 
 def start_full_by_building_run(train_df, label, params, splits, verbose_eval,
