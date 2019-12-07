@@ -149,34 +149,37 @@ def predict_with_lgbm_meter(test_df, row_ids, model_filepath):
     meter type) and then predicts the rows with the respective model
     """
 
-    with timer("Loading models in directory" + model_filepath):
-        models_in_dir = sorted(os.listdir(model_filepath))
-        test_by_meter = []
-        row_id_by_meter = []
-        for i in range(4):
-            is_meter = test_df["meter"] == i
-            test_temp = test_df[is_meter]
-            row_temp = row_ids[is_meter]
-            test_by_meter.append(test_temp)
-            row_id_by_meter.append(row_temp)
+    meters_in_dir = sorted(os.listdir(model_filepath), key=int)
+    test_df["row_id"] = row_ids
+    test_df = test_df.groupby("meter")
 
-    predictions = []
-    row_ids_prediction = []
-    with timer("Predicting values"):
-        for model, test, row in zip(models_in_dir, test_by_meter, row_id_by_meter):
-            del test["meter"]
-            lgbm_model = lgb.Booster(model_file=model_filepath + "/" + model)
+    predictions_by_meter = []
+    row_id_by_meter = []
+    for m in meters_in_dir:
+        test_by_meter = test_df.get_group(int(m))
+        test_by_meter = test_by_meter.reset_index(drop=True)
+        rows_grouped = list(test_by_meter["row_id"])
+        test_by_meter = test_by_meter.drop(columns=["meter", "row_id"], axis=1)
 
-            predictions_current = lgbm_model.predict(test)
-            predictions.extend(list(np.expm1(predictions_current)))
-            row_ids_prediction.extend(row)
+        models_in_dir = os.listdir(model_filepath + "/" + m)
+        num_models = len(models_in_dir)
+        predictions_group = np.zeros(len(rows_grouped))
+        i = 0
+        for model in models_in_dir:
+            i += 1
+            click.echo("Predicting meter " + m + " [" + str(i) + "/" + str(num_models) + "]")
+            lgbm_model = lgb.Booster(model_file=model_filepath + "/" + m + "/" + model)
+            predictions_current = lgbm_model.predict(test_by_meter)
+            predictions_group += np.expm1(predictions_current)
+
+        predictions_group = predictions_group / num_models
+        predictions_by_meter.extend(list(predictions_group))
+        row_id_by_meter.extend(rows_grouped)
 
     # Order the predictions by merging them to the original row ids
-    pred_df = pd.DataFrame({"row_id": row_ids_prediction, "pred": predictions})
-    row_ids_df = pd.DataFrame({"true_row_ids": row_ids})
-    pred_ordered_df = row_ids_df.merge(pred_df, left_on="true_row_ids",
-                                       right_on="row_id", how="left")
-    predictions = pred_ordered_df["pred"].copy(deep=True)
+    pred_df = pd.DataFrame({"row_id": row_id_by_meter, "pred": predictions_by_meter})
+    pred_df = pred_df.sort_values("row_id")
+    predictions = pred_df["pred"].copy(deep=True)
     predictions[predictions < 0] = 0
     return predictions
 

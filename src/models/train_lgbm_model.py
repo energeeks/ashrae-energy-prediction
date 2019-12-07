@@ -99,7 +99,7 @@ def start_full_by_meter_run(train_df, label, params, splits, verbose_eval, num_b
         train_by_meter = train_by_meter.reset_index(drop=True)
         label = train_by_meter["label"]
         train_by_meter = train_by_meter.drop(columns=["meter", "label"], axis=1)
-        with timer("Performing " + str(splits) + " fold cross-validation on building " \
+        with timer("Performing " + str(splits) + " fold cross-validation on meter " \
                    + str(m)):
             kf = KFold(n_splits=splits, shuffle=False, random_state=1337)
             for i, (train_index, test_index) in enumerate(kf.split(train_by_meter, label)):
