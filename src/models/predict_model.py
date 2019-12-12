@@ -5,6 +5,7 @@ import lightgbm as lgb
 import numpy as np
 import pandas as pd
 import xgboost as xgb
+import catboost as ctb
 import yaml
 
 from src.timer import timer
@@ -33,6 +34,9 @@ def main(input_filepath, model_type, model_path):
 
     elif model_type == "lgbm":
         predictions = predict_with_lgbm(test_df, row_ids, model_path)
+
+    elif model_type == "ctb":
+        predictions = predict_with_ctb(test_df, row_ids, model_path)
 
     elif model_type == "lgbm_meter":
         predictions = predict_with_lgbm_meter(test_df, row_ids, model_path)
@@ -96,6 +100,43 @@ def predict_with_lgbm(test_df, row_ids, model_filepath):
 
         with timer("Predicting values"):
             predictions = lgbm_model.predict(test_df)
+            # Invert log and set possible neg. values to 0
+            predictions = np.expm1(predictions)
+        predictions[predictions < 0] = 0
+        return predictions
+
+
+def predict_with_ctb(test_df, row_ids, model_filepath):
+    """
+    Loads the specified model and predicts the target variable which is being
+    returned as list.
+    """
+    if os.path.isdir(model_filepath):
+        click.echo("Loading models in directory" + model_filepath)
+        models_in_dir = os.listdir(model_filepath)
+        num_models = len(models_in_dir)
+        predictions = np.zeros(len(row_ids))
+
+        for i, model in enumerate(models_in_dir, start=1):
+            with timer("Loading model [" + str(i) + "/" + str(num_models) + "]"):
+                ctb_model = ctb.CatBoostRegressor()
+                ctb_model.load_model(model_filepath + "/" + model)
+
+            with timer("Predicting values [" + str(i) + "/" + str(num_models) + "]"):
+                predictions_current = ctb_model.predict(test_df)
+                predictions += np.expm1(predictions_current)
+
+        predictions = predictions / num_models
+        predictions[predictions < 0] = 0
+        return predictions
+
+    else:
+        with timer("Loading model " + model_filepath):
+            ctb_model = ctb.CatBoostRegressor()
+            ctb_model.load_model(model_filepath)
+
+        with timer("Predicting values"):
+            predictions = ctb_model.predict(test_df)
             # Invert log and set possible neg. values to 0
             predictions = np.expm1(predictions)
         predictions[predictions < 0] = 0

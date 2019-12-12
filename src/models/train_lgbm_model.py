@@ -17,7 +17,7 @@ from src.timer import timer
 def main(mode, input_filepath, output_filepath):
     """
     Collects prepared data and starts training an LightGBM model. Parameters
-    can be specified by editing the main function of .py file
+    can be specified by editing src/config.yml.
     """
     random.seed(1337)
     with timer("Loading processed training data"):
@@ -29,10 +29,10 @@ def main(mode, input_filepath, output_filepath):
     with open("src/config.yml", 'r') as ymlfile:
         cfg = yaml.load(ymlfile, Loader=yaml.FullLoader)
     params = cfg["lgbm_params"]
-    num_boost_round = cfg["num_boost_round"]
-    early_stopping_rounds = cfg["early_stopping_rounds"]
-    splits = cfg["splits_for_cv"]
-    verbose_eval = cfg["verbose_eval"]
+    num_boost_round = cfg["lgbm_num_boost_round"]
+    early_stopping_rounds = cfg["lgbm_early_stopping_rounds"]
+    splits = cfg["lgbm_splits_for_cv"]
+    verbose_eval = cfg["lgbm_verbose_eval"]
     ###########################################################################
 
     if mode == "full":
@@ -54,7 +54,7 @@ def main(mode, input_filepath, output_filepath):
 
 def load_processed_training_data(input_filepath):
     """
-    Loads processed data and returns a xgb Matrix with distinguished label
+    Loads processed data and returns a df with distinguished label
     column.
     """
     train_df = pd.read_pickle(input_filepath + "/train_data.pkl")

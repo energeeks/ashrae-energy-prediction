@@ -8,6 +8,10 @@ import numpy as np
 import pandas as pd
 import pytz
 from dotenv import find_dotenv, load_dotenv
+import yaml
+from sklearn.preprocessing import StandardScaler
+from sklearn.experimental import enable_iterative_imputer
+from sklearn.impute import IterativeImputer
 
 from src.timer import timer
 
@@ -22,6 +26,8 @@ def main(data_dir, output_dir):
     """
     logger = logging.getLogger(__name__)
     logger.info('making final data set from raw data')
+    with open("src/config.yml", 'r') as ymlfile:
+        cfg = yaml.load(ymlfile, Loader=yaml.FullLoader)
 
     with timer("Loading data"):
         train_df = load_main_csv(data_dir + "/raw/train.csv")
@@ -34,14 +40,20 @@ def main(data_dir, output_dir):
     with timer("Merging main and building"):
         train_df = train_df.merge(building_df, on="building_id", how="left")
         test_df = test_df.merge(building_df, on="building_id", how="left")
-
+        
+    if cfg["impute_weather_data"]:
+        with timer("Impute missing weather data"):
+            weather_train_df = impute_weather_data(weather_train_df)
+            weather_test_df = impute_weather_data(weather_test_df)
+            
     with timer("Merging weather and site"):
         weather_train_df = weather_train_df.merge(site_df, on="site_id", how="left")
         weather_test_df = weather_test_df.merge(site_df, on="site_id", how="left")
 
-    with timer("Localizing weather timestamp"):
-        weather_train_df = localize_weather_timestamp(weather_train_df)
-        weather_test_df = localize_weather_timestamp(weather_test_df)
+    if cfg["localize_timestamps"]:
+        with timer("Localizing weather timestamp"):
+            weather_train_df = localize_weather_timestamp(weather_train_df)
+            weather_test_df = localize_weather_timestamp(weather_test_df)
 
     with timer("Merging main and weather"):
         train_df = train_df.merge(weather_train_df, on=["site_id", "timestamp"], how="left")
@@ -119,6 +131,58 @@ def split_column_types(column_types):
     converters = {k: v for k, v in column_types.items() if is_converter(v)}
     return dtype, parse_dates, converters
 
+  
+def impute_weather_data(data_frame):
+    data_frame["timestamp"] = pd.to_datetime(data_frame["timestamp"])
+    min_date = data_frame["timestamp"].dropna().min()
+    max_date = data_frame["timestamp"].dropna().max()
+    date_range = pd.date_range(start=min_date, end=max_date, freq="1H")
+    date_range = pd.to_datetime(date_range)
+    date_range = pd.DataFrame({"timestamp": date_range})
+    weather_imputed = pd.DataFrame(columns=["timestamp", "site_id"])
+
+    # Create perfect timeline without missing hours
+    for site in data_frame["site_id"].unique():
+        date_range["site_id"] = site
+        weather_imputed = weather_imputed.append(date_range)
+
+    # Join with existing weather data
+    weather_imputed = weather_imputed.merge(data_frame, left_on=["site_id", "timestamp"],
+                                            right_on=["site_id", "timestamp"],
+                                            how="left")
+
+    # Create new temporal features for better imputation
+    weather_imputed["hour"] = pd.Categorical(weather_imputed["timestamp"].dt.hour)
+    weather_imputed["weekday"] = pd.Categorical(weather_imputed["timestamp"].dt.dayofweek)
+    weather_imputed["month"] = pd.Categorical(weather_imputed["timestamp"].dt.month)
+
+    # Preserve data_frame data before transforming
+    weather_cols = weather_imputed.columns.values
+    weather_timestamp = weather_imputed["timestamp"]
+    weather_site_ids = weather_imputed["site_id"]
+
+    # Scale data for algorithm
+    date_delta = pd.datetime.now() - weather_imputed["timestamp"]
+    weather_imputed["timestamp"] = date_delta.dt.total_seconds()
+    scaler = StandardScaler()
+    weather_imputed = scaler.fit_transform(weather_imputed)
+
+    # Impute missing values
+    imputer = IterativeImputer(max_iter=20,
+                               initial_strategy="median")
+    weather_imputed = imputer.fit_transform(weather_imputed)
+
+    # Rescale
+    weather_imputed = scaler.inverse_transform(weather_imputed)
+
+    # Assemble final weather frame
+    weather_final = pd.DataFrame(data=weather_imputed, columns=weather_cols)
+    weather_final["timestamp"] = weather_timestamp
+    weather_final["site_id"] = weather_site_ids
+    weather_final = weather_final.drop(columns=["hour", "weekday", "month"], axis=1)
+
+    return weather_final
+
 
 def localize_weather_timestamp(df):
     key = ["site_id", "timestamp"]
@@ -127,7 +191,6 @@ def localize_weather_timestamp(df):
     df.drop_duplicates(subset=key, keep="last", inplace=True)  # Because of DST we can have duplicates here
     df.reset_index(drop=True, inplace=True)
     return df
-
 
 def localize_row_timestamp(row):
     return convert_time_zone(row["timestamp"], to_tz=row["timezone"])
