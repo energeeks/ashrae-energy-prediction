@@ -38,41 +38,18 @@ def main(mode, input_filepath, output_filepath):
 
     with timer("Scaling Data Frame"):
         scaler = StandardScaler()
-        train_scaled = scaler.fit_transform(train_df.drop(cat_columns), axis=1)
-        train_df = pd.concat([train_scaled, cat_df])
+        train_scaled = scaler.fit_transform(train_df.drop(cat_columns, axis=1))
+        train_df = np.concatenate([train_scaled, cat_df.to_numpy()], axis=1)
 
         # Save scaler as it is needed for testing data as well
         with open('models/tf/scaler.pkl', 'wb') as handle:
             pickle.dump(scaler, handle)
 
+    del cat_df
+    del train_scaled
     ###########################################################################
     # BUILD TF MODEL                                                          #
     ###########################################################################
-    with open("src/config.yml", 'r') as ymlfile:
-        cfg = yaml.load(ymlfile, Loader=yaml.FullLoader)
-
-    layer_sizes = cfg["LAYER_SIZES"]
-    splits = cfg["tf_splits_for_cv"]
-    epochs = cfg["tf_epochs"]
-    batch_size = cfg["tf_batch_size"]
-
-    model = Sequential()
-
-    model.add(Dense(layer_sizes[0], input_dim=train_df.shape[1]))
-    model.add(LeakyReLU)
-
-    if len(layer_sizes) > 1:
-        for layer_size in layer_sizes[1:]:
-            model.add(Dense(layer_size))
-            model.add(LeakyReLU)
-
-    model.add(Dense(1))
-    model.add(Activation("linear"))
-
-    model.compile(loss=mean_squared_error, optimizer=Adam)
-
-    ###########################################################################
-
     if mode == "cv":
         start_cv_run(train_df, label, model, splits, epochs, batch_size, output_filepath)
     else:
@@ -103,7 +80,7 @@ def start_cv_run(train_df, label, model, splits, epochs, batch_size, output_file
         kf = KFold(n_splits=splits, shuffle=False, random_state=1337)
         for i, (train_index, test_index) in enumerate(kf.split(train_df, label)):
             with timer("~~~~ Fold %d of %d ~~~~" % (i + 1, splits)):
-                x_train, x_valid = train_df.iloc[train_index], train_df.iloc[test_index]
+                x_train, x_valid = train_df[train_index, :], train_df[test_index, :]
                 y_train, y_valid = label[train_index], label[test_index]
 
                 output_final = output_filepath + str(i) + ".h5"
