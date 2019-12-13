@@ -76,7 +76,7 @@ ctb_splits_for_cv: 4
 # DEFINE PARAMETERS FOR THE TENSORFLOW MODEL                               #
 ##########################################################################
 tf_layer_sizes:
-  - 2048
+  - 4096
   - 2048
   - 1024
   - 512

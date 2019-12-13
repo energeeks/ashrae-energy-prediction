@@ -10,8 +10,7 @@ from sklearn.preprocessing import StandardScaler
 
 import tensorflow as tf
 from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import Dense, Activation
-from tensorflow.keras.activations import Leaky_Rel
+from tensorflow.keras.layers import Dense, Activation, LeakyReLU
 from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.losses import mean_squared_error
 from tensorflow.keras.callbacks import EarlyStopping, ModelCheckpoint
@@ -60,12 +59,12 @@ def main(mode, input_filepath, output_filepath):
     model = Sequential()
 
     model.add(Dense(layer_sizes[0], input_dim=train_df.shape[1]))
-    model.add(Activation("relu"))
+    model.add(LeakyReLU)
 
     if len(layer_sizes) > 1:
         for layer_size in layer_sizes[1:]:
             model.add(Dense(layer_size))
-            model.add(Activation("relu"))
+            model.add(LeakyReLU)
 
     model.add(Dense(1))
     model.add(Activation("linear"))
