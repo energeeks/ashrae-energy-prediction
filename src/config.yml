@@ -56,7 +56,7 @@ lgbm_params:
 lgbm_num_boost_round: 999999
 lgbm_early_stopping_rounds: 50
 lgbm_verbose_eval: 25
-lgbm_splits_for_cv: 4
+lgbm_splits_for_cv: 2
 
 ##########################################################################
 # DEFINE PARAMETERS FOR THE CatBoost MODEL                               #
