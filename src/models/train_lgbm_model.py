@@ -165,7 +165,7 @@ def start_cv_run(train_df, label, params, splits, verbose_eval,
     output_filepath = output_filepath + "_cv"
     cv_results = []
     with timer("Performing " + str(splits) + " fold cross-validation"):
-        kf = KFold(n_splits=splits, shuffle=False, random_state=1337)
+        kf = KFold(n_splits=splits, shuffle=True, random_state=1337)
         for i, (train_index, test_index) in enumerate(kf.split(train_df, label)):
             with timer("~~~~ Fold %d of %d ~~~~" % (i + 1, splits)):
                 x_train, x_valid = train_df.iloc[train_index], train_df.iloc[test_index]
