@@ -11,11 +11,10 @@ from sklearn.preprocessing import StandardScaler
 import tensorflow as tf
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Dense, Activation
+from tensorflow.keras.activations import Leaky_Rel
 from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.losses import mean_squared_error
 from tensorflow.keras.callbacks import EarlyStopping, ModelCheckpoint
-
-
 
 from src.timer import timer
 
@@ -35,16 +34,17 @@ def main(mode, input_filepath, output_filepath):
 
     with timer("One-Hot-Encode Categorical data"):
         cat_columns = list(train_df.select_dtypes(include=["category"]).columns)
-        train_df = pd.get_dummies(train_df, columns=cat_columns)
+        cat_df = train_df[cat_columns]
+        cat_df = pd.get_dummies(cat_df, columns=cat_columns)
 
     with timer("Scaling Data Frame"):
         scaler = StandardScaler()
-        train_df = scaler.fit_transform(train_df)
+        train_scaled = scaler.fit_transform(train_df.drop(cat_columns), axis=1)
+        train_df = pd.concat([train_scaled, cat_df])
 
         # Save scaler as it is needed for testing data as well
-        with open('models/tf_cv/scaler.pkl', 'wb') as handle:
+        with open('models/tf/scaler.pkl', 'wb') as handle:
             pickle.dump(scaler, handle)
-
 
     ###########################################################################
     # BUILD TF MODEL                                                          #
@@ -100,6 +100,7 @@ def start_cv_run(train_df, label, model, splits, epochs, batch_size, output_file
     """
     output_filepath = output_filepath + "_cv"
     with timer("Performing " + str(splits) + " fold cross-validation"):
+        model_init_weights = model.get_weights()
         kf = KFold(n_splits=splits, shuffle=False, random_state=1337)
         for i, (train_index, test_index) in enumerate(kf.split(train_df, label)):
             with timer("~~~~ Fold %d of %d ~~~~" % (i + 1, splits)):
@@ -110,13 +111,13 @@ def start_cv_run(train_df, label, model, splits, epochs, batch_size, output_file
                 callbacks = [EarlyStopping(monitor="val_loss", patience=2),
                              ModelCheckpoint(filepath=output_final, monitor="val_loss", save_best_only=True)]
 
-                model_instance = model.copy(deep=True)
-                model_instance.fit(x_train,
-                                   y_train,
-                                   validation_data=(x_valid, y_valid),
-                                   epochs=epochs,
-                                   batch_size=batch_size,
-                                   callbacks=callbacks)
+                model.set_weights(model_init_weights)
+                model.fit(x_train,
+                          y_train,
+                          validation_data=(x_valid, y_valid),
+                          epochs=epochs,
+                          batch_size=batch_size,
+                          callbacks=callbacks)
 
 
 if __name__ == "__main__":
