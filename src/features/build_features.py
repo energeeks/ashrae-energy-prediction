@@ -44,7 +44,7 @@ def main(input_filepath, output_filepath):
             train_df["area_per_floor"] = np.log(train_df["area_per_floor"])
             test_df["area_per_floor"] = np.log(test_df["area_per_floor"])
     
-    if cgf["label_square_feet_outlier"]:
+    if cfg["label_square_feet_outlier"]:
         with timer("Create outlier label for square feet"):
             train_df["outlier_square_feet"] = label_outlier("square_feet", train_df)
             test_df["outlier_square_feet"] = label_outlier("square_feet", test_df)
