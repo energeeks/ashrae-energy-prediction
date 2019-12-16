@@ -57,6 +57,10 @@ def main(input_filepath, output_filepath):
         with timer("Exclude faulty data and outliers"):
             train_df = exclude_faulty_readings(train_df)
 
+    if cfg["add_leaks_to_train"]:
+        with timer("Adding Leak Label to training set"):
+            train_df = add_leaked_data(train_df, test_df)
+
     with timer("Sort training set"):
         train_df.sort_values("timestamp", inplace=True)
         train_df.reset_index(drop=True, inplace=True)
@@ -150,6 +154,20 @@ def encode_wind_direction(data_frame):
     data_frame.loc[data_frame["wind_direction"].isna(), ["wind_direction_sin", "wind_direction_cos"]] = 0
     data_frame.loc[data_frame["wind_speed"] == 0, ["wind_direction_sin", "wind_direction_cos"]] = 0
     return data_frame
+
+
+def add_leaked_data(train_df, test_df):
+    leaked_df = pd.read_feather("data/leak/leak.feather")
+    leaked_df.loc[leaked_df["meter_reading"] < 0, "meter_reading"] = 0
+    leaked_df = leaked_df[leaked_df["building_id"] != 245]
+    leaked_df["timestamp"] = leaked_df["timestamp"].dt.strftime("%Y-%m-%d %H:%M:%S")
+
+    test_leak_df = test_df.copy(deep=True)
+    test_leak_df = test_leak_df.merge(leaked_df, left_on=["building_id", "meter", "timestamp"],
+                                      right_on=["building_id", "meter", "timestamp"], how="left")
+    test_leak_df.dropna(subset=["meter_reading"], inplace=True)
+
+    return pd.concat([train_df, test_leak_df])
 
 
 def drop_columns(data_frame, drop):
