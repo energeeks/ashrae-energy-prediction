@@ -47,9 +47,37 @@ def main(mode, input_filepath, output_filepath):
 
     del cat_df
     del train_scaled
+
+    train_df = train_df.astype(np.float16, copy=False)
+
     ###########################################################################
     # BUILD TF MODEL                                                          #
     ###########################################################################
+    with open("src/config.yml", 'r') as ymlfile:
+        cfg = yaml.load(ymlfile, Loader=yaml.FullLoader)
+
+    layer_sizes = cfg["LAYER_SIZES"]
+    splits = cfg["tf_splits_for_cv"]
+    epochs = cfg["tf_epochs"]
+    batch_size = cfg["tf_batch_size"]
+
+    model = Sequential()
+
+    model.add(Dense(layer_sizes[0], input_dim=train_df.shape[1]))
+    model.add(LeakyReLU)
+
+    if len(layer_sizes) > 1:
+        for layer_size in layer_sizes[1:]:
+            model.add(Dense(layer_size))
+            model.add(LeakyReLU)
+
+    model.add(Dense(1))
+    model.add(Activation("linear"))
+
+    model.compile(loss=mean_squared_error, optimizer=Adam)
+
+    ###########################################################################
+
     if mode == "cv":
         start_cv_run(train_df, label, model, splits, epochs, batch_size, output_filepath)
     else:
