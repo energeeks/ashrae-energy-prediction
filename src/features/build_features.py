@@ -160,14 +160,14 @@ def add_leaked_data(train_df, test_df):
     leaked_df = pd.read_feather("data/leak/leak.feather")
     leaked_df.loc[leaked_df["meter_reading"] < 0, "meter_reading"] = 0
     leaked_df = leaked_df[leaked_df["building_id"] != 245]
-    leaked_df["timestamp"] = leaked_df["timestamp"].dt.strftime("%Y-%m-%d %H:%M:%S")
 
     test_leak_df = test_df.copy(deep=True)
     test_leak_df = test_leak_df.merge(leaked_df, left_on=["building_id", "meter", "timestamp"],
                                       right_on=["building_id", "meter", "timestamp"], how="left")
     test_leak_df.dropna(subset=["meter_reading"], inplace=True)
+    del test_leak_df["row_id"]
 
-    return pd.concat([train_df, test_leak_df])
+    return pd.concat([train_df, test_leak_df], sort=False)
 
 
 def drop_columns(data_frame, drop):
