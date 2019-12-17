@@ -44,9 +44,8 @@ def main(data_dir, output_dir):
         test_df = test_df.merge(building_df, on="building_id", how="left")
         
     with timer("Create feels_like_temp"):
-        weather_train["relative_humidity"] = weather_train.apply(lambda x: compute_humidity(x), axis = 1)
-        weather_train["air_temp_f"] = weather_train["air_temperature"] * 9 / 5. + 32
-        weather_train["feels_like_temp"] = weather_train.apply(lambda x : feels_like_custom(x), axis = 1)
+        weather_train_df = create_feels_like(weather_train_df)
+        weather_test_df = create_feels_like(weather_test_df)
         
     if cfg["impute_weather_data"]:
         with timer("Impute missing weather data"):
@@ -117,6 +116,12 @@ def load_site_csv(csv):
     }
     dtype, parse_dates, converters = split_column_types(column_types)
     return pd.read_csv(csv, delimiter=";", dtype=dtype, parse_dates=parse_dates, converters=converters)
+
+def create_feels_like(df):
+        df["relative_humidity"] = df.apply(lambda x: compute_humidity(x), axis = 1)
+        df["air_temp_f"] = df["air_temperature"] * 9 / 5. + 32
+        df["feels_like_temp"] = df.apply(lambda x : feels_like_custom(x), axis = 1)
+        return(df)
 
 def compute_humidity(row):
     CONSTANTS = dict(
