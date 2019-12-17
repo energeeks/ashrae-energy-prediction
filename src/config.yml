@@ -10,6 +10,7 @@ label_square_feet_outlier: True
 label_area_per_floor_outlier: True
 encode_wind_direction: False
 fill_na_with_zero: False
+include_feels_like: True
 
 add_lag_features: True
 lag_columns:
