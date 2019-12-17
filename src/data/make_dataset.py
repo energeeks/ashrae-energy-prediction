@@ -44,9 +44,9 @@ def main(data_dir, output_dir):
         test_df = test_df.merge(building_df, on="building_id", how="left")
     
     if cfg["include_feels_like"]:
-    with timer("Create feels_like_temp"):
-        weather_train_df = create_feels_like(weather_train_df)
-        weather_test_df = create_feels_like(weather_test_df)
+        with timer("Create feels_like_temp"):
+            weather_train_df = create_feels_like(weather_train_df)
+            weather_test_df = create_feels_like(weather_test_df)
         
     if cfg["impute_weather_data"]:
         with timer("Impute missing weather data"):
