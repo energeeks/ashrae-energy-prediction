@@ -29,11 +29,30 @@ def main(input_filepath, output_filepath):
     with timer("Encoding timestamp features"):
         train_df = encode_timestamp(train_df, circular=cfg["circular_timestamp_encoding"])
         test_df = encode_timestamp(test_df, circular=cfg["circular_timestamp_encoding"])
+    
+    with timer("Create area per floor feature"):
+        train_df["area_per_floor"] = train_df["square_feet"] / train_df["floor_count"]
+        test_df["area_per_floor"] = test_df["square_feet"] / test_df["floor_count"]
 
     if cfg["log_transform_square_feet"]:
         with timer("Taking the log of selected features"):
             train_df["square_feet"] = np.log1p(train_df["square_feet"])
             test_df["square_feet"] = np.log1p(test_df["square_feet"])
+    
+    if cfg["log_transform_area_per_floor"]:
+        with timer("Taking the log of area per floor"):
+            train_df["area_per_floor"] = np.log(train_df["area_per_floor"])
+            test_df["area_per_floor"] = np.log(test_df["area_per_floor"])
+    
+    if cfg["label_square_feet_outlier"]:
+        with timer("Create outlier label for square feet"):
+            train_df["outlier_square_feet"] = label_outlier("square_feet", train_df)
+            test_df["outlier_square_feet"] = label_outlier("square_feet", test_df)
+    
+    if cfg["label_area_per_floor_outlier"]:
+        with timer("Create outlier label for area per floor"):
+            train_df["outlier_area_per_floor"] = label_outlier("area_per_floor", train_df)
+            test_df["outlier_area_per_floor"] = label_outlier("area_per_floor", test_df)
 
     with timer("Calculating age of buildings"):
         train_df = calculate_age_of_building(train_df)
@@ -112,6 +131,15 @@ def encode_timestamp(data_frame, circular=False):
         data_frame["weekday"] = pd.Categorical(timestamp.dt.dayofweek)
         data_frame["month"] = pd.Categorical(timestamp.dt.month)
     return data_frame
+
+def label_outlier(variable, df):
+    var = df[variable]
+    mn = np.mean(var)
+    std = np.std(var)
+    lower = mn - 2.5*std
+    upper = mn + 2.5*std
+    is_outlier = (var < lower) | (var > upper)
+    return(is_outlier)
 
 
 def calculate_age_of_building(data_frame):
