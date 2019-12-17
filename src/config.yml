@@ -5,8 +5,12 @@ localize_timestamps: True
 impute_weather_data: True
 circular_timestamp_encoding: False
 log_transform_square_feet: True
+log_transform_area_per_floor: True
+label_square_feet_outlier: True
+label_area_per_floor_outlier: True
 encode_wind_direction: False
 fill_na_with_zero: False
+include_feels_like: True
 
 add_lag_features: True
 lag_columns:

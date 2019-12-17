@@ -12,6 +12,7 @@ lightgbm
 pyarrow
 catboost
 hyperopt
+meteocalc
 
 # local package
 -e .
