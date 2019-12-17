@@ -2,7 +2,7 @@
 # PREPROCESSING OPTIONS                                                       #
 ###############################################################################
 localize_timestamps: True
-impute_weather_data: True
+impute_weather_data: False
 circular_timestamp_encoding: False
 log_transform_square_feet: True
 log_transform_area_per_floor: True
