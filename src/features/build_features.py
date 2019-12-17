@@ -36,8 +36,8 @@ def main(input_filepath, output_filepath):
 
     if cfg["log_transform_square_feet"]:
         with timer("Taking the log of selected features"):
-            train_df["square_feet"] = np.log1p(train_df["square_feet"])
-            test_df["square_feet"] = np.log1p(test_df["square_feet"])
+            train_df["square_feet"] = np.log(train_df["square_feet"])
+            test_df["square_feet"] = np.log(test_df["square_feet"])
     
     if cfg["log_transform_area_per_floor"]:
         with timer("Taking the log of area per floor"):
@@ -53,6 +53,7 @@ def main(input_filepath, output_filepath):
         with timer("Create outlier label for area per floor"):
             train_df["outlier_area_per_floor"] = label_outlier("area_per_floor", train_df)
             test_df["outlier_area_per_floor"] = label_outlier("area_per_floor", test_df)
+
 
     with timer("Calculating age of buildings"):
         train_df = calculate_age_of_building(train_df)
