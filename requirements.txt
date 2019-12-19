@@ -12,6 +12,7 @@ lightgbm
 pyarrow
 catboost
 hyperopt
+shap
 meteocalc
 
 # local package
