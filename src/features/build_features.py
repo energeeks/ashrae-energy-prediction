@@ -29,11 +29,31 @@ def main(input_filepath, output_filepath):
     with timer("Encoding timestamp features"):
         train_df = encode_timestamp(train_df, circular=cfg["circular_timestamp_encoding"])
         test_df = encode_timestamp(test_df, circular=cfg["circular_timestamp_encoding"])
+    
+    with timer("Create area per floor feature"):
+        train_df["area_per_floor"] = train_df["square_feet"] / train_df["floor_count"]
+        test_df["area_per_floor"] = test_df["square_feet"] / test_df["floor_count"]
 
     if cfg["log_transform_square_feet"]:
         with timer("Taking the log of selected features"):
-            train_df["square_feet"] = np.log1p(train_df["square_feet"])
-            test_df["square_feet"] = np.log1p(test_df["square_feet"])
+            train_df["square_feet"] = np.log(train_df["square_feet"])
+            test_df["square_feet"] = np.log(test_df["square_feet"])
+    
+    if cfg["log_transform_area_per_floor"]:
+        with timer("Taking the log of area per floor"):
+            train_df["area_per_floor"] = np.log(train_df["area_per_floor"])
+            test_df["area_per_floor"] = np.log(test_df["area_per_floor"])
+    
+    if cfg["label_square_feet_outlier"]:
+        with timer("Create outlier label for square feet"):
+            train_df["outlier_square_feet"] = label_outlier("square_feet", train_df)
+            test_df["outlier_square_feet"] = label_outlier("square_feet", test_df)
+    
+    if cfg["label_area_per_floor_outlier"]:
+        with timer("Create outlier label for area per floor"):
+            train_df["outlier_area_per_floor"] = label_outlier("area_per_floor", train_df)
+            test_df["outlier_area_per_floor"] = label_outlier("area_per_floor", test_df)
+
 
     with timer("Calculating age of buildings"):
         train_df = calculate_age_of_building(train_df)
@@ -56,6 +76,10 @@ def main(input_filepath, output_filepath):
     if cfg["exclude_faulty_rows"]:
         with timer("Exclude faulty data and outliers"):
             train_df = exclude_faulty_readings(train_df)
+
+    if cfg["add_leaks_to_train"]:
+        with timer("Adding Leak Label to training set"):
+            train_df = add_leaked_data(train_df, test_df)
 
     with timer("Sort training set"):
         train_df.sort_values("timestamp", inplace=True)
@@ -113,6 +137,15 @@ def encode_timestamp(data_frame, circular=False):
         data_frame["month"] = pd.Categorical(timestamp.dt.month)
     return data_frame
 
+def label_outlier(variable, df):
+    var = df[variable]
+    mn = np.mean(var)
+    std = np.std(var)
+    lower = mn - 2.5*std
+    upper = mn + 2.5*std
+    is_outlier = (var < lower) | (var > upper)
+    return(is_outlier)
+
 
 def calculate_age_of_building(data_frame):
     data_frame["year_built"] = 2019 - data_frame["year_built"]
@@ -150,6 +183,20 @@ def encode_wind_direction(data_frame):
     data_frame.loc[data_frame["wind_direction"].isna(), ["wind_direction_sin", "wind_direction_cos"]] = 0
     data_frame.loc[data_frame["wind_speed"] == 0, ["wind_direction_sin", "wind_direction_cos"]] = 0
     return data_frame
+
+
+def add_leaked_data(train_df, test_df):
+    leaked_df = pd.read_feather("data/leak/leak.feather")
+    leaked_df.loc[leaked_df["meter_reading"] < 0, "meter_reading"] = 0
+    leaked_df = leaked_df[leaked_df["building_id"] != 245]
+
+    test_leak_df = test_df.copy(deep=True)
+    test_leak_df = test_leak_df.merge(leaked_df, left_on=["building_id", "meter", "timestamp"],
+                                      right_on=["building_id", "meter", "timestamp"], how="left")
+    test_leak_df.dropna(subset=["meter_reading"], inplace=True)
+    del test_leak_df["row_id"]
+
+    return pd.concat([train_df, test_leak_df], sort=False)
 
 
 def drop_columns(data_frame, drop):

@@ -6,9 +6,14 @@ from pathlib import Path
 import click
 import numpy as np
 import pandas as pd
+import math
+from meteocalc import feels_like, Temp, dew_point, wind_chill, heat_index
 import pytz
 from dotenv import find_dotenv, load_dotenv
 import yaml
+from sklearn.preprocessing import StandardScaler
+from sklearn.experimental import enable_iterative_imputer
+from sklearn.impute import IterativeImputer
 
 from src.timer import timer
 
@@ -37,7 +42,17 @@ def main(data_dir, output_dir):
     with timer("Merging main and building"):
         train_df = train_df.merge(building_df, on="building_id", how="left")
         test_df = test_df.merge(building_df, on="building_id", how="left")
-
+    
+    if cfg["include_feels_like"]:
+        with timer("Create feels_like_temp"):
+            weather_train_df = create_feels_like(weather_train_df)
+            weather_test_df = create_feels_like(weather_test_df)
+        
+    if cfg["impute_weather_data"]:
+        with timer("Impute missing weather data"):
+            weather_train_df = impute_weather_data(weather_train_df)
+            weather_test_df = impute_weather_data(weather_test_df)
+            
     with timer("Merging weather and site"):
         weather_train_df = weather_train_df.merge(site_df, on="site_id", how="left")
         weather_test_df = weather_test_df.merge(site_df, on="site_id", how="left")
@@ -103,6 +118,31 @@ def load_site_csv(csv):
     dtype, parse_dates, converters = split_column_types(column_types)
     return pd.read_csv(csv, delimiter=";", dtype=dtype, parse_dates=parse_dates, converters=converters)
 
+def create_feels_like(df):
+        df["relative_humidity"] = df.apply(lambda x: compute_humidity(x), axis = 1)
+        df["air_temp_f"] = df["air_temperature"] * 9 / 5. + 32
+        df["feels_like_temp"] = df.apply(lambda x : feels_like_custom(x), axis = 1)
+        return(df)
+
+def compute_humidity(row):
+    CONSTANTS = dict(
+        positive=dict(b=17.368, c=238.88),
+        negative=dict(b=17.966, c=247.15),
+    )
+    T = row["air_temperature"]
+    const = CONSTANTS['positive'] if T > 0 else CONSTANTS['negative']
+    dp = row["dew_temperature"]
+    pa = math.exp(dp * const['b'] / (const['c'] + dp))
+    rel_humidity = pa * 100. * 1 / math.exp(const['b'] * T / (const['c'] + T))
+    return(rel_humidity)
+
+def feels_like_custom(row):
+    temperature = row["air_temp_f"]
+    wind_speed = row["wind_speed"]
+    humidity = row["relative_humidity"]
+    fl = feels_like(temperature, wind_speed, humidity)
+    out = fl.c
+    return(out)
 
 def split_column_types(column_types):
     def is_parse_date(it):
@@ -123,6 +163,58 @@ def split_column_types(column_types):
     converters = {k: v for k, v in column_types.items() if is_converter(v)}
     return dtype, parse_dates, converters
 
+  
+def impute_weather_data(data_frame):
+    data_frame["timestamp"] = pd.to_datetime(data_frame["timestamp"])
+    min_date = data_frame["timestamp"].dropna().min()
+    max_date = data_frame["timestamp"].dropna().max()
+    date_range = pd.date_range(start=min_date, end=max_date, freq="1H")
+    date_range = pd.to_datetime(date_range)
+    date_range = pd.DataFrame({"timestamp": date_range})
+    weather_imputed = pd.DataFrame(columns=["timestamp", "site_id"])
+
+    # Create perfect timeline without missing hours
+    for site in data_frame["site_id"].unique():
+        date_range["site_id"] = site
+        weather_imputed = weather_imputed.append(date_range)
+
+    # Join with existing weather data
+    weather_imputed = weather_imputed.merge(data_frame, left_on=["site_id", "timestamp"],
+                                            right_on=["site_id", "timestamp"],
+                                            how="left")
+
+    # Create new temporal features for better imputation
+    weather_imputed["hour"] = pd.Categorical(weather_imputed["timestamp"].dt.hour)
+    weather_imputed["weekday"] = pd.Categorical(weather_imputed["timestamp"].dt.dayofweek)
+    weather_imputed["month"] = pd.Categorical(weather_imputed["timestamp"].dt.month)
+
+    # Preserve data_frame data before transforming
+    weather_cols = weather_imputed.columns.values
+    weather_timestamp = weather_imputed["timestamp"]
+    weather_site_ids = weather_imputed["site_id"]
+
+    # Scale data for algorithm
+    date_delta = pd.datetime.now() - weather_imputed["timestamp"]
+    weather_imputed["timestamp"] = date_delta.dt.total_seconds()
+    scaler = StandardScaler()
+    weather_imputed = scaler.fit_transform(weather_imputed)
+
+    # Impute missing values
+    imputer = IterativeImputer(max_iter=20,
+                               initial_strategy="median")
+    weather_imputed = imputer.fit_transform(weather_imputed)
+
+    # Rescale
+    weather_imputed = scaler.inverse_transform(weather_imputed)
+
+    # Assemble final weather frame
+    weather_final = pd.DataFrame(data=weather_imputed, columns=weather_cols)
+    weather_final["timestamp"] = weather_timestamp
+    weather_final["site_id"] = weather_site_ids
+    weather_final = weather_final.drop(columns=["hour", "weekday", "month"], axis=1)
+
+    return weather_final
+
 
 def localize_weather_timestamp(df):
     key = ["site_id", "timestamp"]
@@ -131,7 +223,6 @@ def localize_weather_timestamp(df):
     df.drop_duplicates(subset=key, keep="last", inplace=True)  # Because of DST we can have duplicates here
     df.reset_index(drop=True, inplace=True)
     return df
-
 
 def localize_row_timestamp(row):
     return convert_time_zone(row["timestamp"], to_tz=row["timezone"])

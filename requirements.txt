@@ -13,6 +13,7 @@ pyarrow
 catboost
 hyperopt
 shap
+meteocalc
 
 # local package
 -e .
