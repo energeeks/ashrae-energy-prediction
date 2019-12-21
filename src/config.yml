@@ -2,11 +2,15 @@
 # PREPROCESSING OPTIONS                                                       #
 ###############################################################################
 localize_timestamps: True
-impute_weather_data: True
+impute_weather_data: False
 circular_timestamp_encoding: False
 log_transform_square_feet: True
+log_transform_area_per_floor: True
+label_square_feet_outlier: True
+label_area_per_floor_outlier: True
 encode_wind_direction: False
 fill_na_with_zero: False
+include_feels_like: True
 
 add_lag_features: True
 lag_columns:
@@ -21,7 +25,8 @@ exclude_faulty_rows: True
 ###############################################################################
 # SPECIFY IF LEAKS SHOULD BE USED OR NOT                                      #
 ###############################################################################
-use_leaks: False
+use_leaks: True
+add_leaks_to_train: False
 
 ###############################################################################
 # DEFINE COLUMNS TO BE DROPPED                                                #
