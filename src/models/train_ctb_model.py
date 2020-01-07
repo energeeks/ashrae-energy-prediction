@@ -18,6 +18,10 @@ def main(mode, input_filepath, output_filepath):
     """
     Collects prepared data and starts training an CatBoost model. Parameters
     can be specified by editing src/config.yml.
+    :param mode: Specifies mode to run. Now only cv (cross validation)
+    is supported.
+    :param input_filepath: Directory that contains the processed data.
+    :param output_filepath: Directory that will contain the trained models.
     """
     random.seed(1337)
     with timer("Loading processed training data"):
@@ -45,6 +49,8 @@ def load_processed_training_data(input_filepath):
     """
     Loads processed data and returns a df with distinguished label
     column.
+    :param input_filepath: Directory that contains the processed data.
+    :return Tuple with the Training Data and a vector with the matching labels.
     """
     train_df = pd.read_pickle(input_filepath + "/train_data.pkl")
 
@@ -59,9 +65,17 @@ def start_cv_run(train_df, label, params, splits, verbose_eval,
     """
     Starts a Cross Validation Run with the parameters provided.
     Scores will be documented and models will be saved.
+    :param train_df: DataFrame which contains the training data.
+    :param label: A vector which contains the labels of the training data.
+    :param params: Dictionary with the model parameters
+    :param splits: Integer describing the number of folds / splitting fraction.
+    :param verbose_eval: The interval where training information is printed
+    to console.
+    :param early_stopping_rounds: If no improvement of the validation score in
+    n rounds occur, the training will be stopped.
+    :param output_filepath: Directory that will contain the trained models.
     """
     output_filepath = output_filepath + "_cv"
-    cv_results = []
     with timer("Performing " + str(splits) + " fold cross-validation"):
         kf = KFold(n_splits=splits, shuffle=False, random_state=1337)
         for i, (train_index, test_index) in enumerate(kf.split(train_df, label)):
@@ -82,7 +96,9 @@ def start_cv_run(train_df, label, params, splits, verbose_eval,
 
 def save_model(output_filepath, model):
     """
-    Saves the trained model in /models/ctb
+    Saves the trained model.
+    :param output_filepath: Directory that will contain the trained models.
+    :param model: Trained model that needs to be saved to disc.
     """
     os.makedirs(output_filepath, exist_ok=True)
     files_in_dir = os.listdir(output_filepath)

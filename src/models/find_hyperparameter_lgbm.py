@@ -13,6 +13,11 @@ from src.timer import timer
 
 
 def main():
+    """
+    A hyperparameter search using the hyperopt package is being conducted.
+    Parameters can be defined in the respective script. The results will be saved in
+    data/hyperopt.
+    """
     ################################################################################
     # SET PARAMETER FOR SEARCH HERE
     ################################################################################
@@ -78,6 +83,10 @@ def load_processed_training_data(input_filepath):
     """
     Loads processed data and returns a dataframe with distinguished label
     column.
+
+    :param input_filepath: Directory that contains the processed data
+    :return Tuple consisting of the loaded train dataframe and corresponding
+    labels
     """
     train_df = pd.read_pickle(input_filepath + "/train_data.pkl")
 

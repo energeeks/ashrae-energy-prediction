@@ -4,6 +4,9 @@ import click
 
 
 class timer:
+    """
+    Utility class for a simple tracking of wall time.
+    """
     def __init__(self, name):
         self.name = name
 

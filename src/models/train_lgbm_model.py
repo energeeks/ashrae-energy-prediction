@@ -18,6 +18,11 @@ def main(mode, input_filepath, output_filepath):
     """
     Collects prepared data and starts training an LightGBM model. Parameters
     can be specified by editing src/config.yml.
+    :param mode: Specifies mode to run. Options are full (no validation set,
+    single fold), cv (cross validation), by_meter (training by meter type),
+    by_building (training by building id).
+    :param input_filepath: Directory that contains the processed data.
+    :param output_filepath: Directory that will contain the trained models.
     """
     random.seed(1337)
     with timer("Loading processed training data"):
@@ -56,6 +61,8 @@ def load_processed_training_data(input_filepath):
     """
     Loads processed data and returns a df with distinguished label
     column.
+    :param input_filepath: Directory that contains the processed data.
+    :return Tuple with the Training Data and a vector with the matching labels.
     """
     train_df = pd.read_pickle(input_filepath + "/train_data.pkl")
 
@@ -69,6 +76,15 @@ def start_full_training_run(train_df, label, params, verbose_eval,
                             num_boost_round, early_stopping_rounds, output_filepath):
     """"
     Starts a full training run with the provided parameters.
+    :param train_df: DataFrame which contains the training data.
+    :param label: A vector which contains the labels of the training data.
+    :param params: Dictionary with the model parameters
+    :param verbose_eval: The interval where training information is printed
+    to console.
+    :param num_boost_round: Maximum number of rounds / estimators for the training.
+    :param early_stopping_rounds: If no improvement of the validation score in
+    n rounds occur, the training will be stopped.
+    :param output_filepath: Directory that will contain the trained models.
     """
     with timer("Building model and start training"):
         train_lgb_df = lgb.Dataset(data=train_df, label=label)
@@ -86,7 +102,16 @@ def start_full_training_run(train_df, label, params, verbose_eval,
 def start_full_by_meter_run(train_df, label, params, verbose_eval, num_boost_round,
                             early_stopping_rounds, output_filepath):
     """
-    Divides the data into the four meter types and trains a model on each one
+    Divides the data into the four meter types and trains a model on each one.
+    :param train_df: DataFrame which contains the training data.
+    :param label: A vector which contains the labels of the training data.
+    :param params: Dictionary with the model parameters
+    :param verbose_eval: The interval where training information is printed
+    to console.
+    :param num_boost_round: Maximum number of rounds / estimators for the training.
+    :param early_stopping_rounds: If no improvement of the validation score in
+    n rounds occur, the training will be stopped.
+    :param output_filepath: Directory that will contain the trained models.
     """
     output_filepath = output_filepath + "_by_meter"
     train_by_meter = []
@@ -118,6 +143,16 @@ def start_full_by_building_run(train_df, label, params, splits, verbose_eval,
     """
     Trains a model for each of the buildings. Expect a high wall time as the
     count of the buildings is >1000.
+    :param train_df: DataFrame which contains the training data.
+    :param label: A vector which contains the labels of the training data.
+    :param params: Dictionary with the model parameters
+    :param splits: Integer describing the number of folds / splitting fraction.
+    :param verbose_eval: The interval where training information is printed
+    to console.
+    :param num_boost_round: Maximum number of rounds / estimators for the training.
+    :param early_stopping_rounds: If no improvement of the validation score in
+    n rounds occur, the training will be stopped.
+    :param output_filepath: Directory that will contain the trained models.
     """
     output_main_dir = output_filepath + "_by_building"
     train_df["label"] = label
@@ -161,6 +196,16 @@ def start_cv_run(train_df, label, params, splits, verbose_eval,
     """
     Starts a Cross Validation Run with the parameters provided.
     Scores will be documented and models will be saved.
+    :param train_df: DataFrame which contains the training data.
+    :param label: A vector which contains the labels of the training data.
+    :param params: Dictionary with the model parameters
+    :param splits: Integer describing the number of folds / splitting fraction.
+    :param verbose_eval: The interval where training information is printed
+    to console.
+    :param num_boost_round: Maximum number of rounds / estimators for the training.
+    :param early_stopping_rounds: If no improvement of the validation score in
+    n rounds occur, the training will be stopped.
+    :param output_filepath: Directory that will contain the trained models.
     """
     output_filepath = output_filepath + "_cv"
     cv_results = []
@@ -192,7 +237,9 @@ def start_cv_run(train_df, label, params, splits, verbose_eval,
 
 def save_model(output_filepath, model):
     """
-    Saves the trained model in /models/lgbm
+    Saves the trained model.
+    :param output_filepath: Directory that will contain the trained models.
+    :param model: Trained model that needs to be saved to disc.
     """
     os.makedirs(output_filepath, exist_ok=True)
     files_in_dir = os.listdir(output_filepath)
@@ -206,6 +253,7 @@ def evaluate_cv_results(cv_results):
     """
     Prints overview of the respective folds and stores the result in
     models/cv_eval.
+    :param cv_results: Dictionary with the logged training information.
     """
     summary = {
         "fold": [],

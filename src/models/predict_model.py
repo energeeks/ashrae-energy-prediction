@@ -18,7 +18,11 @@ from src.timer import timer
 def main(input_filepath, model_type, model_path):
     """
     Loads a trained model and testing data to create a submission file which is
-    ready for uploading.
+    ready for uploading to the kaggle challenge.
+    :param input_filepath: Directory that contains the processed data
+    :param model_type: Choose according to the boosting framework (xgb, lgbm, ctb)
+    and if it's prediction by meter or building.
+    :param model_path: Directory that contains the trained model
     """
     with open("src/config.yml", 'r') as ymlfile:
         cfg = yaml.load(ymlfile, Loader=yaml.FullLoader)
@@ -55,6 +59,9 @@ def predict_with_xgb(test_df, model_filepath):
     """
     Loads the specified model and predicts the target variable which is being
     returned as list.
+    :param test_df: DataFrame containing the test data
+    :param model_filepath: Directory that contains the trained model
+    :return: Vector containing the predicted labels for the test data
     """
     test_dmatrix = xgb.DMatrix(test_df)
     del test_df
@@ -75,6 +82,10 @@ def predict_with_lgbm(test_df, row_ids, model_filepath):
     """
     Loads the specified model and predicts the target variable which is being
     returned as list.
+    :param test_df: DataFrame containing the test data
+    :param row_ids: A vector with the matching row ids for the predicted labels
+    :param model_filepath: Directory that contains the trained model
+    :return: Vector containing the predicted labels for the test data
     """
     if os.path.isdir(model_filepath):
         click.echo("Loading models in directory" + model_filepath)
@@ -110,6 +121,10 @@ def predict_with_ctb(test_df, row_ids, model_filepath):
     """
     Loads the specified model and predicts the target variable which is being
     returned as list.
+    :param test_df: DataFrame containing the test data
+    :param row_ids: A vector with the matching row ids for the predicted labels
+    :param model_filepath: Directory that contains the trained model
+    :return: Vector containing the predicted labels for the test data
     """
     if os.path.isdir(model_filepath):
         click.echo("Loading models in directory" + model_filepath)
@@ -147,6 +162,10 @@ def predict_with_lgbm_meter(test_df, row_ids, model_filepath):
     """"
     Takes a given directory which contains four models (one for each
     meter type) and then predicts the rows with the respective model
+    :param test_df: DataFrame containing the test data
+    :param row_ids: A vector with the matching row ids for the predicted labels
+    :param model_filepath: Directory that contains the trained model
+    :return: Vector containing the predicted labels for the test data
     """
 
     with timer("Loading models in directory" + model_filepath):
@@ -185,6 +204,10 @@ def predict_with_lgbm_building(test_df, row_ids, model_filepath):
     """"
     Takes a given directory which contains n folders (one for each
     building) and then predicts the rows with the respective models
+    :param test_df: DataFrame containing the test data
+    :param row_ids: A vector with the matching row ids for the predicted labels
+    :param model_filepath: Directory that contains the trained model
+    :return: Vector containing the predicted labels for the test data
     """
     buildings_in_dir = sorted(os.listdir(model_filepath), key=int)
     test_df["row_id"] = row_ids
@@ -226,6 +249,9 @@ def create_submission_file(row_ids, predictions, use_leaks=False):
     """
     Creates a submission file which fulfills the upload conditions for the
     kaggle challenge.
+    :param row_ids: A vector with the matching row ids for the predicted labels
+    :param predictions: Vector containing the predicted labels for the test data
+    :param use_leaks: Indicates if leaks will be added to the submission or not
     """
     if use_leaks:
         with timer("Adding leaks to submission file"):
@@ -241,6 +267,10 @@ def create_submission_file(row_ids, predictions, use_leaks=False):
 
 
 def validate_submission(submission_df):
+    """
+    Checks if the submission matches certain criteria.
+    :param submission_df: DataFrame with row_ids and predictions
+    """
     submission_error = get_submission_error(submission_df)
     if submission_error:
         click.secho(submission_error, err=True, fg="red", bold=True)
@@ -248,6 +278,10 @@ def validate_submission(submission_df):
 
 
 def get_submission_error(submission_df):
+    """
+    Checks if the submission matches certain criteria.
+    :param submission_df: DataFrame with row_ids and predictions
+    """
     actual_columns = submission_df.columns
     expected_columns = ["row_id", "meter_reading"]
     if list(actual_columns) != expected_columns:
@@ -270,6 +304,8 @@ def add_leaks_to_submission(predictions):
     """"
     Complements the predicted values with the real leaked labels. Special thanks to
     https://www.kaggle.com/yamsam/ashrae-leak-data-station
+    :param predictions: Vector containing the predicted labels for the test data
+    :return: Vector
     """
     leaked_df = pd.read_feather("data/leak/leak.feather")
     leaked_df.rename(columns={"meter_reading": "leaked_reading"}, inplace=True)
