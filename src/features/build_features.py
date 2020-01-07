@@ -95,7 +95,7 @@ def main(input_filepath, output_filepath):
 
 def load_interim_data(input_filepath):
     """
-T    Loads interim data which already is preserved as python object due to
+    Loads interim data which already is preserved as python object due to
     previous processing steps
     """
     train_df = pd.read_pickle(input_filepath + "/train_data.pkl")
@@ -138,6 +138,12 @@ def encode_timestamp(data_frame, circular=False):
     return data_frame
 
 def label_outlier(variable, df):
+    """
+    Flags outliers contained in the dataframe
+    :param variable:
+    :param df:
+    :return: true for each outlier present
+    """
     var = df[variable]
     mn = np.mean(var)
     std = np.std(var)
@@ -148,6 +154,11 @@ def label_outlier(variable, df):
 
 
 def calculate_age_of_building(data_frame):
+    """
+    Transforms year_built feature in building_metadata.cvs into age.
+    :param data_frame:
+    :return: dataframe with transformed feature
+    """
     data_frame["year_built"] = 2019 - data_frame["year_built"]
     return data_frame
 
@@ -186,6 +197,12 @@ def encode_wind_direction(data_frame):
 
 
 def add_leaked_data(train_df, test_df):
+    """
+    Adds the leaked data published in public notebooks in Kaggle's website
+    :param train_df:
+    :param test_df:
+    :return: concatenated dataframe
+    """
     leaked_df = pd.read_feather("data/leak/leak.feather")
     leaked_df.loc[leaked_df["meter_reading"] < 0, "meter_reading"] = 0
     leaked_df = leaked_df[leaked_df["building_id"] != 245]
@@ -200,6 +217,12 @@ def add_leaked_data(train_df, test_df):
 
 
 def drop_columns(data_frame, drop):
+    """
+    Drops selected columns from dataframe
+    :param data_frame:
+    :param drop:
+    :return: dataframe with dropped dataframe
+    """
     data_frame.drop(columns=drop, inplace=True)
     return data_frame
 
