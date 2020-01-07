@@ -71,6 +71,12 @@ def main(data_dir, output_dir):
 
 
 def load_main_csv(csv):
+    """
+    Reads, parses and converts the data contained into the main dataframe (data_dir/raw/train.csv), which include the
+    meter readings per building. Each feature is converted accordingly before the dataframe is read.
+    :param csv:
+    :return: Parsed and converted dataframe
+    """
     column_types = {
         "building_id": np.uint16,
         "meter": np.uint8,
@@ -82,6 +88,12 @@ def load_main_csv(csv):
 
 
 def load_weather_csv(csv):
+    """
+    Reads, parses and converts the data contained into the weather dataframe (data_dir/raw/weather_train.csv).
+    Each feature is converted accordingly before the dataframe is read.
+    :param csv:
+    :return: Parsed and converted weather dataframe
+    """
     column_types = {
         "site_id": np.uint8,
         "timestamp": np.datetime64,
@@ -98,6 +110,12 @@ def load_weather_csv(csv):
 
 
 def load_building_csv(csv):
+    """
+    Reads, parses and converts the data contained into the building_metadata dataframe (data_dir/raw/building_metadata.csv).
+    Each feature is handled and converted accordingly before the dataframe is read.
+    :param csv:
+    :return: Parsed and converted building_metadata dataframe
+    """
     column_types = {
         "site_id": np.uint8,
         "timezone": pytz.timezone,
@@ -109,6 +127,11 @@ def load_building_csv(csv):
 
 
 def load_site_csv(csv):
+    """
+    Reads, parses and converts the data contained into the site_info (data_dir/external/site_info.csv).
+    :param csv:
+    :return: Parsed and converted site_info dataframe
+    """
     column_types = {
         "site_id": np.uint8,
         "timezone": pytz.timezone,
@@ -119,12 +142,22 @@ def load_site_csv(csv):
     return pd.read_csv(csv, delimiter=";", dtype=dtype, parse_dates=parse_dates, converters=converters)
 
 def create_feels_like(df):
-        df["relative_humidity"] = df.apply(lambda x: compute_humidity(x), axis = 1)
-        df["air_temp_f"] = df["air_temperature"] * 9 / 5. + 32
-        df["feels_like_temp"] = df.apply(lambda x : feels_like_custom(x), axis = 1)
-        return(df)
+    """
+    Creates a feels like feature for the dataframe.
+    :param df:
+    :return: Dataframe with
+    """
+    df["relative_humidity"] = df.apply(lambda x: compute_humidity(x), axis = 1)
+    df["air_temp_f"] = df["air_temperature"] * 9 / 5. + 32
+    df["feels_like_temp"] = df.apply(lambda x : feels_like_custom(x), axis = 1)
+    return(df)
 
 def compute_humidity(row):
+    """
+    Computes humidity of an entry from the dataframe.
+    :param row: entry from the dataframe
+    :return: relative humidity for the entry
+    """
     CONSTANTS = dict(
         positive=dict(b=17.368, c=238.88),
         negative=dict(b=17.966, c=247.15),
@@ -137,6 +170,11 @@ def compute_humidity(row):
     return(rel_humidity)
 
 def feels_like_custom(row):
+    """
+    Computes feels like feature for an entry from the dataframe
+    :param row: entry from the dataframe
+    :return: feels like value for the entry
+    """
     temperature = row["air_temp_f"]
     wind_speed = row["wind_speed"]
     humidity = row["relative_humidity"]
@@ -145,6 +183,7 @@ def feels_like_custom(row):
     return(out)
 
 def split_column_types(column_types):
+
     def is_parse_date(it):
         return it == np.datetime64
 
@@ -165,6 +204,11 @@ def split_column_types(column_types):
 
   
 def impute_weather_data(data_frame):
+    """
+    Imputes missing data from the weather dataframe using iterative imputer
+    :param data_frame: weather dataframe
+    :return: dataframe with imputed values
+    """
     data_frame["timestamp"] = pd.to_datetime(data_frame["timestamp"])
     min_date = data_frame["timestamp"].dropna().min()
     max_date = data_frame["timestamp"].dropna().max()
@@ -217,6 +261,11 @@ def impute_weather_data(data_frame):
 
 
 def localize_weather_timestamp(df):
+    """
+    Localizes all weather dataframe timestamps, drops unwanted duplicates which might be generated
+    :param df:
+    :return: dataframe with localized timestamps
+    """
     key = ["site_id", "timestamp"]
     df.sort_values(by=key, inplace=True)  # Sort for drop_duplicates
     df["timestamp"] = df.apply(localize_row_timestamp, axis=1)
@@ -225,10 +274,22 @@ def localize_weather_timestamp(df):
     return df
 
 def localize_row_timestamp(row):
+    """
+    Convert timestamp of an entry to the local timezone
+    :param row:
+    :return: converted timestamps
+    """
     return convert_time_zone(row["timestamp"], to_tz=row["timezone"])
 
 
 def convert_time_zone(dt, from_tz=pytz.utc, to_tz=pytz.utc):
+    """
+    Converts timestamps to local timezone
+    :param dt:
+    :param from_tz:
+    :param to_tz:
+    :return: dataframe with localized values of timezones
+    """
     return dt.tz_localize(from_tz).tz_convert(to_tz).tz_localize(None)
 
 
