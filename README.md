@@ -3,7 +3,7 @@ ASHRAE - Great Energy Predictor III Challenge
 
 Who are we?
 -------------
-We are computer science & statistics students at LMU Munich and this project is happening as part of a Data Science Practical. Our plan is to participate in the associated Kaggle Challenge and subsequently build a product surrounding the trained model.
+We are computer science & statistics students at LMU Munich and this project is happening as part of a Data Science Practical. Our plan was to participate in the associated Kaggle Challenge and subsequently build a product surrounding the trained model.
 
 Have fun checking out our stuff!
 
@@ -40,6 +40,34 @@ The provided data consists of ~20 mio. rows for training (one year timespan) and
 
 Further weather data has been provided, which comes with air_temperature, cloud_coverage, dew_temperature, precip_depth_1_hr, sea_level_pressure, wind_direction and wind_speed.
 
+Getting started
+---------------
+
+1. **The Data**
+
+   The raw data has to be placed in `data/raw`. A good practice is to download the data via the Kaggle CLI.
+    ```
+    kaggle competitions download -c ashrae-energy-prediction
+    mkdir -p data/raw
+    unzip ashrae-energy-prediction.zip -d data/raw
+    ```
+
+2. **Use the configuration file**
+
+   The configuration settings are located in `src/config.yml`. This is important to customize feature engineering and model training.
+
+3. **Prepare data for training**
+
+   Using `make data` the data is loaded and the several `.csv`-files will be joined to a consistent data frame. The result is saved in `data/interim`.
+   Next use `make features` to conduct the feature engineering process. The result is saved in `data/processed`.
+
+4. **Train a model**
+
+   The frameworks being uses are LightGBM, CatBoost and XGBoost. We personally had our best experiences with LightGBM, but feel free to try differen frameworks or setting. The default settings are the parameters that have been determined through a hyperparameter search.
+   To train a model use `make train MODEL=<framework> MODE=<mode>`. For the `MODEL` parameter you can use lgbm (LightGBM), ctb (CatBoost) or xgb (XGBoost). All Models work with `MODE=cv` (Cross Validation), which is our preferred way that gave us the best results. For LightGBM there are also following options available: full (training on whole dataset w/o validation set), by_meter (training a model by meter type), by_building (training a model by building id).
+   The models will be safed in the equally named directory.
+
+
 Project Organization
 ------------
 
@@ -59,9 +87,7 @@ Project Organization
     ├── notebooks          <- Jupyter notebooks. Naming convention is a number (for ordering),
     │                         the creator's initials, and a short `-` delimited description, e.g.
     │                         `1.0-jqp-initial-data-exploration`.
-    │
-    ├── references         <- Data dictionaries, manuals, and all other explanatory materials.
-    │
+    │    │
     ├── reports            <- Generated analysis as HTML, PDF, LaTeX, etc.
     │   └── figures        <- Generated graphics and figures to be used in reporting
     │
@@ -81,10 +107,12 @@ Project Organization
     │   ├── models         <- Scripts to train models and then use trained models to make
     │   │   │                 predictions
     │   │   ├── predict_model.py
-    │   │   └── train_model.py
+    │   │   └── train_lgbm_model.py
+    │   │   └── train_ctb_model.py
+    |   │   └── train_xgb_model.py
+    │   │   └── find_hyperparameter_lgbm.py
     │   │
     │   └── visualization  <- Scripts to create exploratory and results oriented visualizations
-    │       └── visualize.py
     │
     └── tox.ini            <- tox file with settings for running tox; see tox.testrun.org
 
