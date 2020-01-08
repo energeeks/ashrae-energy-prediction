@@ -3,7 +3,7 @@ ASHRAE - Great Energy Predictor III Challenge
 
 Who are we?
 -------------
-We are computer science & statistics students at LMU Munich and this project is happening as part of a Data Science Practical. Our plan was to participate in the associated Kaggle Challenge and subsequently build a product surrounding the trained model.
+We are computer science & statistics students at LMU Munich and this project is happening as part of a Data Science Practical. Our plan was to participate in the associated Kaggle Challenge and subsequently build a product surrounding the trained model. Eventually we placed 160th in the public leaderboard and unfortunately only 509th in the private leaderboard.
 
 Have fun checking out our stuff!
 
@@ -66,6 +66,25 @@ Getting started
    The frameworks being uses are LightGBM, CatBoost and XGBoost. We personally had our best experiences with LightGBM, but feel free to try differen frameworks or setting. The default settings are the parameters that have been determined through a hyperparameter search.
    To train a model use `make train MODEL=<framework> MODE=<mode>`. For the `MODEL` parameter you can use lgbm (LightGBM), ctb (CatBoost) or xgb (XGBoost). All Models work with `MODE=cv` (Cross Validation), which is our preferred way that gave us the best results. For LightGBM there are also following options available: full (training on whole dataset w/o validation set), by_meter (training a model by meter type), by_building (training a model by building id).
    The models will be safed in the equally named directory.
+   
+   
+5. **Make a prediction**
+
+   The easiest way is to use `make predict MODEL_PATH=<modelpath> MODEL=<model>` where `MODEL_PATH` should point to the directory of the saved models or the model itself. The `MODEL` parameter describes the framework of the model equivalent to the step above. The result is a `.csv` file, which is dumped in the `submission` directory and is ready for uploading to Kaggle. An importen flag is whether to use leaks or not as it heavily influences the resulting submission file.
+   
+6. **Submit to Kaggle**
+
+The submission file can be uploaded to the respective Kaggle challenge simply via the CLI tool.
+   ```
+   kaggle competitions submit -c ashrae-energy-prediction -f submission.csv -m "<submit message>"
+   ```
+   Keep in mind that your authentication reasons your Kaggle token has to be placed in `~/.kaggle`.
+   
+   
+Leaks
+------------
+
+Unfortunately a portion of the test labels have been leaked, which stirred the whole competition. If you want to use the leaks for your own experiments, you have the set the respective flags in the config file. Additionally the leaks have to be downloaded from [here](https://www.kaggle.com/yamsam/ashrae-leak-data-station) and be placed in `data/leaks`.
 
 
 Project Organization
