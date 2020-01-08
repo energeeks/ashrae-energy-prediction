@@ -145,7 +145,7 @@ def create_feels_like(df):
     """
     Creates a feels like feature for the dataframe.
     :param df:
-    :return: Dataframe with
+    :return: Dataframe with added feature
     """
     df["relative_humidity"] = df.apply(lambda x: compute_humidity(x), axis = 1)
     df["air_temp_f"] = df["air_temperature"] * 9 / 5. + 32
@@ -262,7 +262,7 @@ def impute_weather_data(data_frame):
 
 def localize_weather_timestamp(df):
     """
-    Localizes all weather dataframe timestamps, drops unwanted duplicates which might be generated
+    Localizes all weather dataframe timestamps, drops unwanted duplicates which might have been generated
     :param df:
     :return: dataframe with localized timestamps
     """
