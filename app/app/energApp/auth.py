@@ -23,7 +23,8 @@ def login_page():
             if user:
                 if user.check_password(password=password):
                     login_user(user)
-                    return url_for('main_bp.index')
+                    next = request.args.get('next')
+                    return redirect(next or url_for('main_bp.index'))
         flash('Invalid username or password')
         return redirect(url_for('auth_bp.login_page'))
     return render_template('/login.html', form=LoginForm())
@@ -54,7 +55,7 @@ def signup_page():
 def logout_page():
     """User log-out logic."""
     logout_user()
-    return redirect(url_for('auth_bp.login_page'))
+    return redirect(url_for('main_bp.index'))
 
 
 @login_manager.user_loader

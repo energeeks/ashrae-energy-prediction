@@ -1,6 +1,6 @@
 FROM tiangolo/uwsgi-nginx-flask:python3.7
 
 RUN pip install --upgrade pip && \
-    pip install flask-sqlalchemy flask-login wtforms
+    pip install flask-sqlalchemy flask-login flask-bootstrap flask-wtf wtforms
 
 COPY ./app /app
