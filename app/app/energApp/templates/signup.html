@@ -1,0 +1,45 @@
+{% extends "layout.html" %}
+
+{% block body %}
+<div class="formwrapper">
+  <form method=post>
+    <div class="logo">
+      <img src="{{url_for('static', filename='images/energeek_logo.png')}}" width="30" height="30">
+    </div>
+    {% for message in get_flashed_messages() %}
+      <div class="alert alert-warning">
+          <button type="button" class="close" data-dismiss="alert">&times;</button>
+          {{ message }}
+      </div>
+    {% endfor %}
+    <h1>Sign Up</h1>
+    <div class="name">
+      {{ form.name.label }}
+      {{ form.name(placeholder='Saitama') }}
+      {% if form.name.errors %}
+        <ul class="errors">{% for error in form.name.errors %}<li>{{ error }}</li>{% endfor %}</ul>
+      {% endif %}
+    </div>
+    <div class="password">
+      {{ form.password.label }}
+      {{ form.password }}
+      {% if form.password.errors %}
+        <ul class="errors">{% for error in form.password.errors %}<li>{{ error }}</li>{% endfor %}</ul>
+      {% endif %}
+    </div>
+    <div class="confirm">
+      {{ form.confirm.label }}
+      {{ form.confirm }}
+      {% if form.confirm.errors %}
+        <ul class="confirm">{% for error in form.confirm.errors %}<li>{{ error }}</li>{% endfor %}</ul>
+      {% endif %}
+    </div>
+    <div class="submitbutton">
+      <input id="submit" type="submit" value="Submit">
+    </div>
+  </form>
+  <div class="loginsignup">
+    <span>Already have an account? <a href="{{ url_for('auth_bp.login_page') }}">Log in.</a><span>
+  </div>
+</div>
+{% endblock %}
