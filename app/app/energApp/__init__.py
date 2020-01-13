@@ -27,9 +27,11 @@ def create_app():
         app.register_blueprint(auth.auth_bp)
 
         db.create_all()
+        #db.drop_all()
 
-    from .models import User
+    from .models import User, Building
     admin = Admin(app)
     admin.add_view(ModelView(User, db.session))
+    admin.add_view(ModelView(Building, db.session))
 
     return app

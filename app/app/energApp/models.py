@@ -28,7 +28,7 @@ class User(UserMixin, db.Model):
         return check_password_hash(self.password, password)
 
     def __repr__(self):
-        return '<User {}>'.format(self.username)
+        return '<User {}>'.format(self.name)
 
 
 class Building(db.Model):
@@ -49,10 +49,13 @@ class Building(db.Model):
                            nullable=True)
     floorcount = db.Column(db.Integer,
                            nullable=True)
-    location_lat = db.Column(db.Float,
+    latitude = db.Column(db.Float,
                              nullable=False)
-    location_long = db.Column(db.Float,
+    longitude = db.Column(db.Float,
                               nullable=False)
     user_id = db.Column(db.Integer,
                         db.ForeignKey('user.id'),
                         nullable=False)
+
+    def __repr__(self):
+        return '<Building {}>'.format(self.name)

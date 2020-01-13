@@ -1,7 +1,11 @@
 .navbar{
     background-color: #dcffd9;
+    color: #001f07;
 }
 
 body{
     background-color: #e8ffe6;
+    color: #001f07;
 }
+
+#mapid { height: 500px; }

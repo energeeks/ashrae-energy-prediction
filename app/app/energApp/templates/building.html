@@ -1,0 +1,57 @@
+{% extends "layout.html" %}
+{% import "bootstrap/wtf.html" as wtf %}
+
+{% block body %}
+<div class="container" style="padding: 10px">
+    <div class="row">
+        <div class="col-sm-6">
+            <p><b>{{current_user.name}}'s Buildings:</b></p>
+        </div>
+        <div class="col-sm-6 text-right">
+            <button type="button" class="btn btn-success" data-toggle="modal" data-target="#buildingModal">
+                <b>+</b> Add
+            </button>
+        </div>
+    </div>
+</div>
+
+          {% for b in buildings %}
+<div class="col-lg-12 border rounded", style="padding: 10px; margin-bottom: 10px">
+    <h6>{{ b.name}}</h6>
+    <span style="margin-right: 40px">Use: {{b.primary_use}}</span>
+    <span style="margin-right: 40px">{{b.square_feet}} sq ft</span>
+    <span style="margin-right: 40px">{{b.year_built}}</span>
+    <span style="margin-right: 40px">{{b.floorcount}} Floor(s)</span>
+</div>
+          {% endfor %}
+
+
+<!-- Modal -->
+<div class="modal fade" id="buildingModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered mw-100 w-75">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Please enter building details</h5>
+        <button type="button" class="close" data-dismiss="modal">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="container" style="padding: 10px">
+            <div class="row">
+                <div class="col-sm-8 border rounded", style="padding: 10px">
+                    <div id="mapid"></div>
+                </div>
+                <div class="col-sm-4">
+                    {{ wtf.quick_form(form, button_map={'submit':'success text-right'}) }}
+                </div>
+            </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="{{ url_for('static', filename='building_map.js') }}"></script>
+
+{% endblock %}
