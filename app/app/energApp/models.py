@@ -6,7 +6,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 class User(UserMixin, db.Model):
     """Model for user accounts."""
 
-    __tablename__ = 'users'
+    __tablename__ = 'user'
 
     id = db.Column(db.Integer,
                    primary_key=True)
@@ -17,14 +17,7 @@ class User(UserMixin, db.Model):
                          primary_key=False,
                          unique=False,
                          nullable=False)
-    created_on = db.Column(db.DateTime,
-                           index=False,
-                           unique=False,
-                           nullable=True)
-    last_login = db.Column(db.DateTime,
-                           index=False,
-                           unique=False,
-                           nullable=True)
+    buildings = db.relationship('Building', backref='user', lazy=True)
 
     def set_password(self, password):
         """Create hashed password."""
@@ -36,3 +29,30 @@ class User(UserMixin, db.Model):
 
     def __repr__(self):
         return '<User {}>'.format(self.username)
+
+
+class Building(db.Model):
+    """Model for a building that the users enters in their profile"""
+
+    __tablename__ = 'building'
+
+    id = db.Column(db.Integer,
+                   primary_key=True)
+    name = db.Column(db.String,
+                     nullable=False,
+                     unique=False)
+    primary_use = db.Column(db.String(120),
+                            nullable=False)
+    square_feet = db.Column(db.Integer,
+                            nullable=False)
+    year_built = db.Column(db.Integer,
+                           nullable=True)
+    floorcount = db.Column(db.Integer,
+                           nullable=True)
+    location_lat = db.Column(db.Float,
+                             nullable=False)
+    location_long = db.Column(db.Float,
+                              nullable=False)
+    user_id = db.Column(db.Integer,
+                        db.ForeignKey('user.id'),
+                        nullable=False)
