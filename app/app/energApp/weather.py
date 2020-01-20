@@ -4,19 +4,10 @@ from flask import current_app
 
 
 def get_forecast(lat, lon):
-    call_root = "http://api.openweathermap.org/data/2.5/forecast"
-    call_lat = "?lat="
-    lat = str(lat)
-    call_lon = "&lon="
-    lon = str(lon)
-    call_key = "&appid="
     api_key = current_app.config['API_KEY']
-
-    call = [call_root, call_lat, lat, call_lon, lon, call_key, api_key]
-    separator = ""
-    call = separator.join(call)
-    return requests.get(call)
-
+    url = "http://api.openweathermap.org/data/2.5/forecast?&units=metric&lat={}&lon={}&appid={}".format(lat, lon, api_key)
+    return requests.get(url)
+    
 
 def parse_request(request):
     request = request.json()
