@@ -23,8 +23,11 @@ from src.timer import timer
 @click.argument('output_dir', type=click.Path())
 def main(data_dir, output_dir):
     """
-    Runs data processing scripts to turn raw data (data_dir/raw) and external data (data_dir/external) into cleaned data
-    ready for feature engineering (saved in output_dir).
+    Runs data processing scripts to turn raw data (data_dir/raw) and external
+    data (data_dir/external) into cleaned data ready for feature engineering
+    (saved in output_dir).
+    :param data_dir: Directory that contains the raw data
+    :param output_dir: Directory where results will be saved in.
     """
     logger = logging.getLogger(__name__)
     logger.info('making final data set from raw data')
@@ -72,9 +75,10 @@ def main(data_dir, output_dir):
 
 def load_main_csv(csv):
     """
-    Reads, parses and converts the data contained into the main dataframe (data_dir/raw/train.csv), which include the
-    meter readings per building. Each feature is converted accordingly before the dataframe is read.
-    :param csv:
+    Reads, parses and converts the data contained into the main dataframe
+    (data_dir/raw/train.csv), which include the meter readings per building.
+    Each feature is converted accordingly before the dataframe is read.
+    :param csv: train.csv retrieved from kaggle
     :return: Parsed and converted dataframe
     """
     column_types = {
@@ -91,7 +95,7 @@ def load_weather_csv(csv):
     """
     Reads, parses and converts the data contained into the weather dataframe (data_dir/raw/weather_train.csv).
     Each feature is converted accordingly before the dataframe is read.
-    :param csv:
+    :param csv: weather_train.csv retrieved from kaggle
     :return: Parsed and converted weather dataframe
     """
     column_types = {
@@ -111,9 +115,10 @@ def load_weather_csv(csv):
 
 def load_building_csv(csv):
     """
-    Reads, parses and converts the data contained into the building_metadata dataframe (data_dir/raw/building_metadata.csv).
-    Each feature is handled and converted accordingly before the dataframe is read.
-    :param csv:
+    Reads, parses and converts the data contained into the building_metadata dataframe
+    (data_dir/raw/building_metadata.csv). Each feature is handled and converted accordingly
+    before the dataframe is read.
+    :param csv: building_metadata.csv retrieved from kaggle
     :return: Parsed and converted building_metadata dataframe
     """
     column_types = {
@@ -129,7 +134,7 @@ def load_building_csv(csv):
 def load_site_csv(csv):
     """
     Reads, parses and converts the data contained into the site_info (data_dir/external/site_info.csv).
-    :param csv:
+    :param csv: site_info.csv retrieved from kaggle
     :return: Parsed and converted site_info dataframe
     """
     column_types = {
@@ -141,21 +146,23 @@ def load_site_csv(csv):
     dtype, parse_dates, converters = split_column_types(column_types)
     return pd.read_csv(csv, delimiter=";", dtype=dtype, parse_dates=parse_dates, converters=converters)
 
+
 def create_feels_like(df):
     """
-    Creates a feels like feature for the dataframe.
-    :param df:
+    Creates a feels-like temperature feature for the dataframe.
+    :param df: weather data frame.
     :return: Dataframe with added feature
     """
     df["relative_humidity"] = df.apply(lambda x: compute_humidity(x), axis = 1)
     df["air_temp_f"] = df["air_temperature"] * 9 / 5. + 32
     df["feels_like_temp"] = df.apply(lambda x : feels_like_custom(x), axis = 1)
-    return(df)
+    return df
+
 
 def compute_humidity(row):
     """
     Computes humidity of an entry from the dataframe.
-    :param row: entry from the dataframe
+    :param row: entry from the weather dataframe
     :return: relative humidity for the entry
     """
     CONSTANTS = dict(
@@ -167,12 +174,13 @@ def compute_humidity(row):
     dp = row["dew_temperature"]
     pa = math.exp(dp * const['b'] / (const['c'] + dp))
     rel_humidity = pa * 100. * 1 / math.exp(const['b'] * T / (const['c'] + T))
-    return(rel_humidity)
+    return rel_humidity
+
 
 def feels_like_custom(row):
     """
     Computes feels like feature for an entry from the dataframe
-    :param row: entry from the dataframe
+    :param row: entry from the weather dataframe
     :return: feels like value for the entry
     """
     temperature = row["air_temp_f"]
@@ -180,9 +188,16 @@ def feels_like_custom(row):
     humidity = row["relative_humidity"]
     fl = feels_like(temperature, wind_speed, humidity)
     out = fl.c
-    return(out)
+    return out
+
 
 def split_column_types(column_types):
+    """
+    Provided a list of column_types the method will set fitting parameters
+    for the csv import
+    :param column_types: Dictionary containing column: datatype
+    :return: Tuple with the assigned data type and whether to parse the date or not
+    """
 
     def is_parse_date(it):
         return it == np.datetime64
@@ -262,8 +277,9 @@ def impute_weather_data(data_frame):
 
 def localize_weather_timestamp(df):
     """
-    Localizes all weather dataframe timestamps, drops unwanted duplicates which might have been generated
-    :param df:
+    Localizes all weather dataframe timestamps, drops unwanted duplicates
+    which might have been generated.
+    :param df: weather dataframe
     :return: dataframe with localized timestamps
     """
     key = ["site_id", "timestamp"]
@@ -273,10 +289,11 @@ def localize_weather_timestamp(df):
     df.reset_index(drop=True, inplace=True)
     return df
 
+
 def localize_row_timestamp(row):
     """
     Convert timestamp of an entry to the local timezone
-    :param row:
+    :param row: row of the weather dataframe
     :return: converted timestamps
     """
     return convert_time_zone(row["timestamp"], to_tz=row["timezone"])
@@ -285,17 +302,20 @@ def localize_row_timestamp(row):
 def convert_time_zone(dt, from_tz=pytz.utc, to_tz=pytz.utc):
     """
     Converts timestamps to local timezone
-    :param dt:
-    :param from_tz:
-    :param to_tz:
-    :return: dataframe with localized values of timezones
+    :param dt: A timestamp
+    :param from_tz: Origin timezone
+    :param to_tz: Desired timezone
+    :return: Dataframe with localized values of timezones
     """
     return dt.tz_localize(from_tz).tz_convert(to_tz).tz_localize(None)
 
 
 def save_joined_data(train_df, test_df, output_dir):
     """
-    Takes the two joined dataframes and stores them for further engineering
+    Takes the two joined dataframes and stores them for further engineering.
+    :param train_df: Data frame containing training data
+    :param test_df: Data frame containing test data
+    :param output_dir: Directory where the results will be saved in.
     """
     os.makedirs(output_dir, exist_ok=True)
     train_df.to_pickle(output_dir + "/train_data.pkl")

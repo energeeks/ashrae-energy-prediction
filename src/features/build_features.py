@@ -15,6 +15,8 @@ def main(input_filepath, output_filepath):
     """ Runs data feature engineering scripts to turn interim data from
         (../interim) into data which is ready for usage in ML models
         (saved in ../processed).
+        :param input_filepath: Directory that contains the interim data
+        :param output_filepath: Directory where processed results will be saved in.
     """
     with open("src/config.yml", 'r') as ymlfile:
         cfg = yaml.load(ymlfile, Loader=yaml.FullLoader)
@@ -53,7 +55,6 @@ def main(input_filepath, output_filepath):
         with timer("Create outlier label for area per floor"):
             train_df["outlier_area_per_floor"] = label_outlier("area_per_floor", train_df)
             test_df["outlier_area_per_floor"] = label_outlier("area_per_floor", test_df)
-
 
     with timer("Calculating age of buildings"):
         train_df = calculate_age_of_building(train_df)
@@ -97,6 +98,8 @@ def load_interim_data(input_filepath):
     """
     Loads interim data which already is preserved as python object due to
     previous processing steps
+    :param input_filepath: Directory that contains the interim data
+    :return: Tuple containing training and test data
     """
     train_df = pd.read_pickle(input_filepath + "/train_data.pkl")
     test_df = pd.read_pickle(input_filepath + "/test_data.pkl")
@@ -105,7 +108,7 @@ def load_interim_data(input_filepath):
 
 def encode_categorical_data(data_frame):
     """
-    Sets a fitting format for categorical data
+    Sets a fitting format for categorical data.
     """
     # return pd.get_dummies(data_frame, columns=["meter", "primary_use"])
     data_frame["primary_use"] = LabelEncoder().fit_transform(data_frame["primary_use"])
@@ -137,6 +140,7 @@ def encode_timestamp(data_frame, circular=False):
         data_frame["month"] = pd.Categorical(timestamp.dt.month)
     return data_frame
 
+
 def label_outlier(variable, df):
     """
     Flags outliers contained in the dataframe
@@ -150,7 +154,7 @@ def label_outlier(variable, df):
     lower = mn - 2.5*std
     upper = mn + 2.5*std
     is_outlier = (var < lower) | (var > upper)
-    return(is_outlier)
+    return is_outlier
 
 
 def calculate_age_of_building(data_frame):
