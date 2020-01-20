@@ -2,6 +2,7 @@ from flask import render_template, Blueprint, request
 from flask_login import login_required, current_user
 from .forms import BuildingForm
 from .models import db, Building
+from .weather import get_forecast, parse_request
 
 
 main_bp = Blueprint('main_bp', __name__,
@@ -9,10 +10,15 @@ main_bp = Blueprint('main_bp', __name__,
                     static_folder='static')
 
 
+
+
 @main_bp.route('/')
 @login_required
 def index():
-    return render_template('index.html')
+    forecast = get_forecast(48, 11)
+    forecast = parse_request(forecast)
+    return render_template('index.html',
+                           forecast=forecast.to_html())
 
 
 @main_bp.route('/something')
