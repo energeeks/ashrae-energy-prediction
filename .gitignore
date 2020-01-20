@@ -91,3 +91,6 @@ target/
 
 # Mypy cache
 .mypy_cache/
+
+# Config file with API key
+app/app/energApp/config.py

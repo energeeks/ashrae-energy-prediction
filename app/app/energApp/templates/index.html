@@ -5,4 +5,8 @@
     <h1>Hello</h1>
     <a href={{url_for('main_bp.do_something')}}>Get me to something</a>
   </div>
+
+  <div class="col-lg-12 text-center">
+    <p>{{ forecast | safe }}</p>
+  </div>
 {% endblock %}
