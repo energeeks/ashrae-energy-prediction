@@ -10,7 +10,8 @@ import configparser
 import os
 import pandas as pd
 os.getcwd()
-os.chdir("C:\\Users\\Mufasa\\Desktop\\Uni\\Master Biostatistik\\Git\\ashrae-energy-prediction\\app\\app\\EnergApp")
+
+
 
 api_key = "54e35f48e2a81513b516113a868a6d7c"
 lat = "48"
