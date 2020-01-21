@@ -40,6 +40,8 @@ drop:
   - timezone
   - country_code
   - location
+  - site_id
+  - building_id
 
 ###############################################################################
 # DEFINE PARAMETERS FOR THE LGBM MODEL                                        #
