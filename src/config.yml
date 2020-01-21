@@ -48,19 +48,19 @@ drop:
 ###############################################################################
 lgbm_params:
   objective: regression
-  boosting: gbdt
+  boosting: dart
   learning_rate: 0.05
-  bagging_fraction: 0.7604703318859309
-  feature_fraction: 0.9556886502673504
-  min_data_in_leaf: 15
-  min_split_gain: 0.4673249117301946
+  bagging_fraction: 0.9484361954387427
+  feature_fraction: 0.8748759225130817
+  min_data_in_leaf: 30
+  min_split_gain: 0.2335888161661162
   num_leaves: 3480
-  reg_alpha: 3.9145881110580314
-  reg_lambda: 1.2467155815765916
+  reg_alpha: 0.2748100019294575
+  reg_lambda: 3.8233940707366925
   metric: rmse
   verbosity: -1
   
-lgbm_num_boost_round: 999999
+lgbm_num_boost_round: 750
 lgbm_early_stopping_rounds: 50
 lgbm_verbose_eval: 25
 lgbm_splits_for_cv: 4
