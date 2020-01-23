@@ -1,9 +1,6 @@
 {% extends "layout.html" %}
 
 {% block body %}
-  <div class="col-lg-12 text-center">
-    <h1>Hello</h1>
-  </div>
 <div class="container">
   <div class="row align-items-center">
     <div class="col-sm-10" id="building1">
@@ -29,11 +26,6 @@
   </div>
 
 </div>
-
-  <div class="col-lg-12 text-center">
-    <p>{{ model.to_html() | safe }}</p>
-  </div>
-
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
 <script src="{{ url_for('static', filename='plots.js') }}"></script>
 
