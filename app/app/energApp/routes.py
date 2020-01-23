@@ -1,24 +1,31 @@
-from flask import render_template, Blueprint, request
+import pandas as pd
+from flask import render_template, Blueprint, request, current_app
 from flask_login import login_required, current_user
 from .forms import BuildingForm
 from .models import db, Building
 from .weather import get_forecast, parse_request
-
+from .predict import predict_energy_consumption
 
 main_bp = Blueprint('main_bp', __name__,
                     template_folder='templates',
                     static_folder='static')
 
 
-
-
 @main_bp.route('/')
 @login_required
 def index():
-    forecast = get_forecast(48, 11)
-    forecast = parse_request(forecast)
+    building_query = Building.query.filter_by(user_id=current_user.name)
+    buildings = pd.read_sql(building_query.statement,
+                            building_query.session.bind)
+    forecasts = [get_forecast(r["latitude"], r["longitude"]) for i, r in buildings.iterrows()]
+    forecasts = [parse_request(f) for f in forecasts]
+
+    predictions = predict_energy_consumption(model=current_app.config["MODEL"],
+                                             buildings=buildings,
+                                             forecasts=forecasts)
     return render_template('index.html',
-                           forecast=forecast.to_html())
+                           forecasts=forecasts,
+                           model=predictions)
 
 
 @main_bp.route('/something')

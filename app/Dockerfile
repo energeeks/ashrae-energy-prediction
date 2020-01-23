@@ -1,8 +1,18 @@
 FROM tiangolo/uwsgi-nginx-flask:python3.7
 
-RUN pip install --upgrade pip && \
-    pip install flask-sqlalchemy flask-login \
-    flask-bootstrap flask-wtf wtforms flask-admin \
-    requests pandas
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+        cmake && \
+    pip install --upgrade pip && \
+    pip install \
+        flask-sqlalchemy \
+        flask-login \
+        flask-bootstrap \
+        flask-wtf \
+        wtforms \
+        flask-admin \
+        requests \
+        pandas \
+        lightgbm
 
 COPY ./app /app

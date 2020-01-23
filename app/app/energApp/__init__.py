@@ -1,4 +1,5 @@
-import configparser
+import os
+from lightgbm import Booster
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
@@ -8,7 +9,6 @@ from flask_admin.contrib.sqla import ModelView
 
 db = SQLAlchemy()
 login_manager = LoginManager()
-
 
 
 def create_app():
@@ -28,10 +28,16 @@ def create_app():
         from . import config
         app.register_blueprint(routes.main_bp)
         app.register_blueprint(auth.auth_bp)
+
+        # Load weather API Key
         app.config['API_KEY'] = config.api_key
 
+        # Load model
+        app.config['MODEL'] = Booster(model_file="energApp/models/"
+                                                 + os.listdir("energApp/models/")[0])
+
         db.create_all()
-        #db.drop_all()
+        # db.drop_all()
 
     from .models import User, Building
     admin = Admin(app)
