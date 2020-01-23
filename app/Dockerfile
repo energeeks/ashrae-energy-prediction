@@ -14,6 +14,7 @@ RUN apt-get update && \
         requests \
         pandas \
         lightgbm \
-        plotly
+        plotly \
+        meteocalc
 
 COPY ./app /app
