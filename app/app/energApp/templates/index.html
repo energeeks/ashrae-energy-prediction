@@ -5,12 +5,37 @@
     <h1>Hello</h1>
     <a href={{url_for('main_bp.do_something')}}>Get me to something</a>
   </div>
+<div class="container">
+  <div class="row align-items-center">
+    <div class="col-sm-10" id="building1">
+      <script>
+        var graphs = {{ plot | safe }};
+        Plotly.plot("building1",graphs,{});
+      </script>
+    </div>
+    <div class="col-sm-2 inputGroup" id="meter-types">
+      <div class="checkbox">
+        <label><input id="b1-m0" type="checkbox" value="" checked>Electricity</label>
+      </div>
+      <div class="checkbox">
+        <label><input id="b1-m1" type="checkbox" value="" checked>Chilled Water</label>
+      </div>
+      <div class="checkbox">
+        <label><input id="b1-m2" type="checkbox" value="" checked>Steam</label>
+      </div>
+      <div class="checkbox">
+        <label><input id="b1-m3" type="checkbox" value="" checked>Hot Water</label>
+      </div>
+    </div>
+  </div>
+
+</div>
+
   <div class="col-lg-12 text-center">
     <p>{{ model.to_html() | safe }}</p>
   </div>
-{% for forecast in forecasts %}
-  <div class="col-lg-12 text-center">
-    <p>{{ forecast | safe }}</p>
-  </div>
-{% endfor %}
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+<script src="{{ url_for('static', filename='plots.js') }}"></script>
+
 {% endblock %}

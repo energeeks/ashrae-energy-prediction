@@ -1,3 +1,8 @@
+*{font-family: 'Roboto', sans-serif;}
+.bold{font-weight:bold;}
+.italic{font-style: italic;}
+.oblique{font-style: oblique;}
+
 .navbar{
     background-color: #dcffd9;
     color: #001f07;

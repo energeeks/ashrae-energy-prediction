@@ -5,6 +5,7 @@ from .forms import BuildingForm
 from .models import db, Building
 from .weather import get_forecast, parse_request
 from .predict import predict_energy_consumption
+from .graph import create_plot
 
 main_bp = Blueprint('main_bp', __name__,
                     template_folder='templates',
@@ -23,9 +24,21 @@ def index():
     predictions = predict_energy_consumption(model=current_app.config["MODEL"],
                                              buildings=buildings,
                                              forecasts=forecasts)
+    plot = create_plot(1, 1, 1, 1)
+
     return render_template('index.html',
                            forecasts=forecasts,
+                           plot=plot,
                            model=predictions)
+
+
+@main_bp.route('/plot', methods=['GET', 'POST'])
+def change_meters():
+    meter0 = int(request.args["m0"])
+    meter1 = int(request.args["m1"])
+    meter2 = int(request.args["m2"])
+    meter3 = int(request.args["m3"])
+    return create_plot(meter0, meter1, meter2, meter3)
 
 
 @main_bp.route('/something')

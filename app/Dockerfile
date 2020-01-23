@@ -13,6 +13,7 @@ RUN apt-get update && \
         flask-admin \
         requests \
         pandas \
-        lightgbm
+        lightgbm \
+        plotly
 
 COPY ./app /app
