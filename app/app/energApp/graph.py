@@ -18,25 +18,25 @@ def create_plot(meter0, meter1, meter2, meter3):
     if meter0:
         data.append(go.Scatter(x=random_x, y=random_y0,
                                mode='lines+markers',
-                               name='lines+markers',
+                               name='Electricity',
                                line=dict(color='darkolivegreen'),
                                showlegend=False))
     if meter1:
         data.append(go.Scatter(x=random_x, y=random_y1,
                                mode='lines+markers',
-                               name='lines+markers',
+                               name='Chilled Water',
                                line=dict(color='aqua'),
                                showlegend=False))
     if meter2:
         data.append(go.Scatter(x=random_x, y=random_y2,
                                mode='lines+markers',
-                               name='lines+markers',
+                               name='Steam',
                                line=dict(color='aquamarine'),
                                showlegend=False))
     if meter3:
         data.append(go.Scatter(x=random_x, y=random_y0 + 7,
                                mode='lines+markers',
-                               name='lines+markers',
+                               name='Hot Water',
                                line=dict(color='darkturquoise'),
                                showlegend=False))
 
