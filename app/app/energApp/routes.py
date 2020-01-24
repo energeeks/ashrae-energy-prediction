@@ -10,6 +10,7 @@ from .graph import create_plot
 main_bp = Blueprint('main_bp', __name__,
                     template_folder='templates',
                     static_folder='static')
+prediction = None
 
 
 @main_bp.route('/')
@@ -24,10 +25,11 @@ def index():
 @main_bp.route('/predictions')
 @login_required
 def predictions_page():
+    global prediction
     building_query = Building.query.filter_by(user_id=current_user.name)
     buildings = pd.read_sql(building_query.statement, building_query.session.bind)
     prediction = predict_energy_consumption(buildings)
-    plot = create_plot(1, 1, 1, 1)
+    plot = create_plot([1, 1, 1, 1], prediction)
 
     return render_template('predictions.html',
                            plot=plot)
@@ -39,7 +41,7 @@ def change_meters():
     meter1 = int(request.args["m1"])
     meter2 = int(request.args["m2"])
     meter3 = int(request.args["m3"])
-    return create_plot(meter0, meter1, meter2, meter3)
+    return create_plot([meter0, meter1, meter2, meter3], prediction)
 
 
 @main_bp.route('/buildings', methods=['GET', 'POST'])

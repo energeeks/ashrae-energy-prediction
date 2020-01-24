@@ -1,5 +1,4 @@
 $('#meter-types').on('change',function(){
-    console.log($("#b1-m0").is(':checked') ? 1 : 0)
     $.ajax({
         url: "/plot",
         type: "GET",
@@ -11,8 +10,8 @@ $('#meter-types').on('change',function(){
             "m3": $("#b1-m3").is(':checked') ? 1 : 0
         },
         dataType:"json",
-        success: function (data) {
-            Plotly.newPlot("building1", data );
+        success: function (plot) {
+            Plotly.newPlot("building1", plot.data, plot.layout);
         }
     });
 })

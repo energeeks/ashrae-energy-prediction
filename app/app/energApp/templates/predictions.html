@@ -5,8 +5,10 @@
   <div class="row align-items-center">
     <div class="col-sm-10" id="building1">
       <script>
-        var graphs = {{ plot | safe }};
-        Plotly.plot("building1",graphs,{});
+        var plot = {{ plot | safe }};
+        var graphs = plot.data;
+        var layout = plot.layout;
+        Plotly.plot("building1",graphs, layout);
       </script>
     </div>
     <div class="col-sm-2 inputGroup" id="meter-types">

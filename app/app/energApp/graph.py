@@ -1,43 +1,50 @@
 import plotly
 import plotly.graph_objs as go
-
-import pandas as pd
-import numpy as np
 import json
 
 
-def create_plot(meter0, meter1, meter2, meter3):
-    N = 100
-    random_x = np.linspace(0, 1, N)
-    random_y0 = np.random.randn(N) + 5
-    random_y1 = np.random.randn(N)
-    random_y2 = np.random.randn(N) - 5
+def create_plot(meters, prediction):
+    prediction = prediction.loc[prediction["building_id"] == 1, ]
+    reading_0 = prediction["reading"].loc[prediction["meter"] == 0]
+    reading_1 = prediction["reading"].loc[prediction["meter"] == 1]
+    reading_2 = prediction["reading"].loc[prediction["meter"] == 2]
+    reading_3 = prediction["reading"].loc[prediction["meter"] == 3]
+    timestamp = prediction["timestamp"]
 
     data = []
 
-    if meter0:
-        data.append(go.Scatter(x=random_x, y=random_y0,
+    if meters[0]:
+        data.append(go.Scatter(x=timestamp, y=reading_0,
                                mode='lines+markers',
                                name='Electricity',
                                line=dict(color='darkolivegreen'),
                                showlegend=False))
-    if meter1:
-        data.append(go.Scatter(x=random_x, y=random_y1,
+    if meters[1]:
+        data.append(go.Scatter(x=timestamp, y=reading_1,
                                mode='lines+markers',
                                name='Chilled Water',
                                line=dict(color='aqua'),
                                showlegend=False))
-    if meter2:
-        data.append(go.Scatter(x=random_x, y=random_y2,
+    if meters[2]:
+        data.append(go.Scatter(x=timestamp, y=reading_2,
                                mode='lines+markers',
                                name='Steam',
                                line=dict(color='aquamarine'),
                                showlegend=False))
-    if meter3:
-        data.append(go.Scatter(x=random_x, y=random_y0 + 7,
+    if meters[3]:
+        data.append(go.Scatter(x=timestamp, y=reading_3,
                                mode='lines+markers',
                                name='Hot Water',
                                line=dict(color='darkturquoise'),
                                showlegend=False))
-
-    return json.dumps(data, cls=plotly.utils.PlotlyJSONEncoder)
+    layout = {
+        "yaxis": {
+            "title": "Energy Consumption"
+        },
+        "xaxis": {
+            "tickformat": "%H:00 - %b %d",
+            "tickmode": "auto",
+            "dtick": "H3"
+        }
+    }
+    return json.dumps({"data": data, "layout": layout}, cls=plotly.utils.PlotlyJSONEncoder)
