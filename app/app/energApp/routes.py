@@ -32,6 +32,7 @@ def predictions_page():
     plot = create_plot([1, 1, 1, 1], prediction)
 
     return render_template('predictions.html',
+                           buildings=buildings,
                            plot=plot)
 
 

@@ -2,7 +2,8 @@
 
 {% block body %}
 <div class="container">
-  <div class="row align-items-center">
+  <button type="button" class="collapsible" style="margin-top: 10px;">{{ buildings.name | first }}</button>
+  <div class="row align-items-center coll-content" id="coll-1">
     <div class="col-sm-10" id="building1">
       <script>
         var plot = {{ plot | safe }};
@@ -11,7 +12,9 @@
         Plotly.plot("building1",graphs, layout);
       </script>
     </div>
-    <div class="col-sm-2 inputGroup" id="meter-types">
+    <div class="col-sm-2" id="meter-types" style="margin-top: 5px">
+      <h6>Meters:</h6>
+      <hr>
       <div class="checkbox">
         <label><input id="b1-m0" type="checkbox" value="" checked>Electricity</label>
       </div>
@@ -24,11 +27,11 @@
       <div class="checkbox">
         <label><input id="b1-m3" type="checkbox" value="" checked>Hot Water</label>
       </div>
+      <hr>
     </div>
   </div>
-
 </div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
 <script src="{{ url_for('static', filename='plots.js') }}"></script>
-
+<script src="{{ url_for('static', filename='predictions.js') }}"></script>
 {% endblock %}

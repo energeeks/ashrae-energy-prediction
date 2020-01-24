@@ -38,6 +38,11 @@ def create_plot(meters, prediction):
                                line=dict(color='darkturquoise'),
                                showlegend=False))
     layout = {
+        "height": 200,
+        "margin": go.layout.Margin(
+          t=20,
+          b=30
+        ),
         "yaxis": {
             "title": "Energy Consumption"
         },
