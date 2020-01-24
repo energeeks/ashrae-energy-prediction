@@ -25,20 +25,13 @@ def index():
 @login_required
 def predictions_page():
     building_query = Building.query.filter_by(user_id=current_user.name)
-    buildings = pd.read_sql(building_query.statement,
-                            building_query.session.bind)
-    forecasts = [get_forecast(r["latitude"], r["longitude"]) for i, r in buildings.iterrows()]
-    forecasts = [parse_request(f) for f in forecasts]
-
-    predictions = predict_energy_consumption(model=current_app.config["MODEL"],
-                                             buildings=buildings,
-                                             forecasts=forecasts)
+    buildings = pd.read_sql(building_query.statement, building_query.session.bind)
+    prediction = predict_energy_consumption(buildings)
     plot = create_plot(1, 1, 1, 1)
 
     return render_template('predictions.html',
-                           forecasts=forecasts,
-                           plot=plot,
-                           model=predictions)
+                           plot=plot)
+
 
 @main_bp.route('/plot', methods=['GET', 'POST'])
 def change_meters():

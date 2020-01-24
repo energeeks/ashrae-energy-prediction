@@ -28,7 +28,6 @@ def predict_energy_consumption(buildings):
 
     df = create_feels_like(df)
 
-    df = encode_categorical_data(df)
     df = encode_timestamp(df)
     df["area_per_floor"] = df["square_feet"] / df["floor_count"]
     df["square_feet"] = np.log(df["square_feet"])
@@ -38,12 +37,24 @@ def predict_energy_consumption(buildings):
     df = calculate_age_of_building(df)
     df = add_lag_features(df, ["air_temperature", "dew_temperature", "cloud_coverage"], [6, 24])
 
+    df_temp = df.copy(deep=True)
+    for i in range(1, 4):
+        df_temp["meter"] += 1
+        df = pd.concat([df, df_temp])
+    del df_temp
+
+    df = encode_categorical_data(df)
+
+    building_ids = df["building_id"]
+    timestamps = df["timestamp"]
     df.drop(columns=["timestamp", "month", "wind_direction", "wind_speed", "building_id"], inplace=True)
 
     lgbm_model = current_app.config['MODEL']
-    predictions = pd.DataFrame({"reading": np.expm1(lgbm_model.predict(df))})
-    df = predictions.merge(df, left_index=True, right_index=True)
-    return df
+    predictions = pd.DataFrame({"reading": np.expm1(lgbm_model.predict(df)),
+                                "building_id": building_ids,
+                                "meter": df["meter"],
+                                "timestamp": timestamps})
+    return predictions
 
 
 def forecast_for_building(building):
