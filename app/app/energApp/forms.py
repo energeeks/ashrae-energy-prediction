@@ -1,6 +1,8 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, validators, SubmitField, IntegerField, FloatField, HiddenField
-from wtforms.validators import ValidationError, DataRequired, EqualTo, Length
+from wtforms import StringField, PasswordField, validators, SubmitField, \
+    IntegerField, FloatField, HiddenField, SelectField
+from wtforms.validators import ValidationError, DataRequired, \
+    EqualTo, Length
 
 
 class SignupForm(FlaskForm):
@@ -22,7 +24,25 @@ class LoginForm(FlaskForm):
 
 class BuildingForm(FlaskForm):
     name = StringField('Name')
-    primary_use = StringField('Primary Use')
+    fields = [
+        ('Education', 'Education'),
+        ('Entertainment/public assembly', 'Entertainment/public assembly'),
+        ('Food sales and service', 'Food sales and service'),
+        ('Healthcare', 'Healthcare'),
+        ('Lodging/residential', 'Lodging/residential'),
+        ('Manufacturing/industrial', 'Manufacturing/industrial'),
+        ('Office', 'Office'),
+        ('Other', 'Other'),
+        ('Parking', 'Parking'),
+        ('Public services', 'Public services'),
+        ('Religious worship', 'Religious worship'),
+        ('Retail', 'Retail'),
+        ('Services', 'Services'),
+        ('Technology/science', 'Technology/science'),
+        ('Utility', 'Utility'),
+        ('Warehouse/storage', 'Warehouse/storage')
+        ]
+    primary_use = SelectField('Primary Use', choices=fields)
     square_feet = IntegerField('Square Feet')
     year_built = IntegerField('Year Built')
     floorcount = IntegerField('Floors')

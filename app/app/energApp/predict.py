@@ -2,7 +2,6 @@ import numpy as np
 import pandas as pd
 from flask import current_app
 from meteocalc import feels_like
-from sklearn.preprocessing import LabelEncoder
 
 from .weather import get_forecast, parse_request
 
@@ -93,8 +92,26 @@ def encode_categorical_data(data_frame):
     """
     Sets a fitting format for categorical data.
     """
-    # return pd.get_dummies(data_frame, columns=["meter", "primary_use"])
-    data_frame["primary_use"] = LabelEncoder().fit_transform(data_frame["primary_use"])
+    primary_use_label = {
+        'Education': 0,
+        'Entertainment/public assembly': 1,
+        'Food sales and service': 2,
+        'Healthcare': 3,
+        'Lodging/residential': 4,
+        'Manufacturing/industrial': 5,
+        'Office': 6,
+        'Other': 7,
+        'Parking': 8,
+        'Public services': 9,
+        'Religious worship': 10,
+        'Retail': 11,
+        'Services': 12,
+        'Technology/science': 13,
+        'Utility': 14,
+        'Warehouse/storage': 15
+    }
+
+    data_frame["primary_use"].replace(primary_use_label, inplace=True)
     data_frame["primary_use"] = pd.Categorical(data_frame["primary_use"])
     data_frame["meter"] = pd.Categorical(data_frame["meter"])
     return data_frame
