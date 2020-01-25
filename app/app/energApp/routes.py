@@ -29,20 +29,25 @@ def predictions_page():
     building_query = Building.query.filter_by(user_id=current_user.name)
     buildings = pd.read_sql(building_query.statement, building_query.session.bind)
     prediction = predict_energy_consumption(buildings)
-    plot = create_plot([1, 1, 1, 1], prediction)
+
+    plots = []
+    for _, g in prediction.groupby("building_id"):
+        plots.append(create_plot([1, 1, 1, 1], g))
 
     return render_template('predictions.html',
                            buildings=buildings,
-                           plot=plot)
+                           plots=plots)
 
 
 @main_bp.route('/plot', methods=['GET', 'POST'])
 def change_meters():
+    prediction_building = prediction.loc[prediction["building_id"] == int(request.args["building"])]
+
     meter0 = int(request.args["m0"])
     meter1 = int(request.args["m1"])
     meter2 = int(request.args["m2"])
     meter3 = int(request.args["m3"])
-    return create_plot([meter0, meter1, meter2, meter3], prediction)
+    return create_plot([meter0, meter1, meter2, meter3], prediction_building)
 
 
 @main_bp.route('/buildings', methods=['GET', 'POST'])

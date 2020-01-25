@@ -2,34 +2,36 @@
 
 {% block body %}
 <div class="container">
-  <button type="button" class="collapsible" style="margin-top: 10px;">{{ buildings.name | first }}</button>
-  <div class="row align-items-center coll-content" id="coll-1">
-    <div class="col-sm-10" id="building1">
-      <script>
-        var plot = {{ plot | safe }};
-        var graphs = plot.data;
-        var layout = plot.layout;
-        Plotly.plot("building1",graphs, layout);
-      </script>
+  {% for i, b in buildings.iterrows() %}
+    <button type="button" class="collapsible" style="margin-top: 10px;">{{ b["name"] }}</button>
+    <div class="row align-items-center coll-content" id="coll-{{ i }}">
+      <div class="col-sm-10" id="building{{ i }}">
+        <script>
+          var plot = {{ plots[i] | safe }};
+          var graphs = plot.data;
+          var layout = plot.layout;
+          Plotly.plot("building{{i}}",graphs, layout);
+        </script>
+      </div>
+      <div class="col-sm-2 meter-types" id="meter-types-{{ i }}" data-building ="{{ b["id"] }}" data-index="{{i}}" style="margin-top: 5px">
+        <h6>Meters:</h6>
+        <hr>
+        <div class="checkbox">
+          <label><input id="b{{ i }}-m0" type="checkbox" value="" checked>Electricity</label>
+        </div>
+        <div class="checkbox">
+          <label><input id="b{{ i }}-m1" type="checkbox" value="" checked>Chilled Water</label>
+        </div>
+        <div class="checkbox">
+          <label><input id="b{{ i }}-m2" type="checkbox" value="" checked>Steam</label>
+        </div>
+        <div class="checkbox">
+          <label><input id="b{{ i }}-m3" type="checkbox" value="" checked>Hot Water</label>
+        </div>
+        <hr>
+      </div>
     </div>
-    <div class="col-sm-2" id="meter-types" style="margin-top: 5px">
-      <h6>Meters:</h6>
-      <hr>
-      <div class="checkbox">
-        <label><input id="b1-m0" type="checkbox" value="" checked>Electricity</label>
-      </div>
-      <div class="checkbox">
-        <label><input id="b1-m1" type="checkbox" value="" checked>Chilled Water</label>
-      </div>
-      <div class="checkbox">
-        <label><input id="b1-m2" type="checkbox" value="" checked>Steam</label>
-      </div>
-      <div class="checkbox">
-        <label><input id="b1-m3" type="checkbox" value="" checked>Hot Water</label>
-      </div>
-      <hr>
-    </div>
-  </div>
+  {% endfor %}
 </div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
 <script src="{{ url_for('static', filename='plots.js') }}"></script>

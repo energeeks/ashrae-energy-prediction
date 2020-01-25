@@ -13,5 +13,5 @@ for (i = 0; i < coll.length; i++) {
   });
 }
 coll[0].classList.toggle("active");
-var content = document.getElementById("coll-1")
+var content = document.getElementById("coll-0")
 content.style.maxHeight= content.scrollHeight + "px";

@@ -4,7 +4,6 @@ import json
 
 
 def create_plot(meters, prediction):
-    prediction = prediction.loc[prediction["building_id"] == 1, ]
     reading_0 = prediction["reading"].loc[prediction["meter"] == 0]
     reading_1 = prediction["reading"].loc[prediction["meter"] == 1]
     reading_2 = prediction["reading"].loc[prediction["meter"] == 2]
@@ -40,13 +39,18 @@ def create_plot(meters, prediction):
     layout = {
         "height": 200,
         "margin": go.layout.Margin(
-          t=20,
-          b=30
+            t=20,
+            b=30
         ),
+        "paper_bgcolor": "transparent",
         "yaxis": {
+            "linecolor": "#001f07",
+            "mirror": True,
             "title": "Energy Consumption"
         },
         "xaxis": {
+            "linecolor": "#001f07",
+            "mirror": True,
             "tickformat": "%H:00 - %b %d",
             "tickmode": "auto",
             "dtick": "H3"

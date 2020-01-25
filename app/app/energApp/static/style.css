@@ -9,7 +9,7 @@
 }
 
 body{
-    background-color: #e8ffe6;
+    background-color: #edf9ec;
     color: #001f07;
 }
 
@@ -31,8 +31,7 @@ body{
 }
 
 .coll-content {
-  padding: 0 0px;
-  background-color: white;
+  padding: 0 0;
   max-height: 0;
   overflow: hidden;
   transition: max-height 0.2s ease-out;
