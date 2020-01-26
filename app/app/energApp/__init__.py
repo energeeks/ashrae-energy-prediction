@@ -33,8 +33,8 @@ def create_app():
         app.config['API_KEY'] = config.api_key
 
         # Load model
-        #app.config['MODEL'] = Booster(model_file="energApp/models/"
-         #                                        + os.listdir("energApp/models/")[0])
+        app.config['MODEL'] = Booster(model_file="energApp/models/"
+                                                + os.listdir("energApp/models/")[0])
 
         db.create_all()
         # db.drop_all()
