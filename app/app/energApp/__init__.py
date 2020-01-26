@@ -34,7 +34,7 @@ def create_app():
 
         # Load model
         app.config['MODEL'] = Booster(model_file="energApp/models/"
-                                                 + os.listdir("energApp/models/")[0])
+                                                + os.listdir("energApp/models/")[0])
 
         db.create_all()
         # db.drop_all()
