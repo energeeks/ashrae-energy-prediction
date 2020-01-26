@@ -38,6 +38,10 @@ def predictions_page():
                            buildings=buildings,
                            plots=plots)
 
+@main_bp.route('/faq')
+def faq_page():
+    return render_template('faq.html')
+
 
 @main_bp.route('/plot', methods=['GET', 'POST'])
 def change_meters():
