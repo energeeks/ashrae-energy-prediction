@@ -1,4 +1,8 @@
 version: '3'
 services:
   energapp:
-    build: ./
+    build:
+      context: app
+
+  db:
+    container_name: db

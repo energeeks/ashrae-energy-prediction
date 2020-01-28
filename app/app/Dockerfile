@@ -6,6 +6,7 @@ RUN apt-get update && \
     pip install --upgrade pip && \
     pip install \
         flask-sqlalchemy \
+        psycopg2 \
         flask-login \
         flask-bootstrap \
         flask-wtf \
@@ -17,4 +18,4 @@ RUN apt-get update && \
         plotly \
         meteocalc
 
-COPY ./app /app
+COPY . /app

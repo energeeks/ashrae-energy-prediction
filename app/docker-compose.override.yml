@@ -1,5 +1,13 @@
 version: '3'
 services:
+  db:
+    image: postgres
+    restart: always
+    environment:
+      POSTGRES_DB: energeek_app
+      POSTGRES_USER: ener
+      POSTGRES_PASSWORD: geek
+
   energapp:
     volumes:
       - ./app:/app
@@ -10,5 +18,5 @@ services:
       - FLASK_DEBUG=1
       - 'RUN=flask run --host=0.0.0.0 --port=80'
     command: flask run --host=0.0.0.0 --port=80
-    # Infinite loop, to keep it alive, for debugging
-    # command: bash -c "while true; do echo 'sleeping...' && sleep 10; done"
+    depends_on:
+      - db

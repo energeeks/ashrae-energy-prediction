@@ -16,9 +16,11 @@ prediction = None
 @main_bp.route('/')
 @login_required
 def index():
-    building_query = Building.query.filter_by(user_id=current_user.name)
+    global prediction
+    building_query = Building.query.filter_by(user_id=current_user.id)
     buildings = pd.read_sql(building_query.statement, building_query.session.bind)
-    prediction = predict_energy_consumption(buildings)
+    if len(buildings) > 0:
+        prediction = predict_energy_consumption(buildings)
     return render_template('index.html', prediction=prediction)
 
 
@@ -26,17 +28,19 @@ def index():
 @login_required
 def predictions_page():
     global prediction
-    building_query = Building.query.filter_by(user_id=current_user.name)
+    building_query = Building.query.filter_by(user_id=current_user.id)
     buildings = pd.read_sql(building_query.statement, building_query.session.bind)
-    prediction = predict_energy_consumption(buildings)
-
     plots = []
-    for _, g in prediction.groupby("building_id"):
-        plots.append(create_plot([1, 1, 1, 1], g))
+
+    if len(buildings) > 0:
+        prediction = predict_energy_consumption(buildings)
+        for _, g in prediction.groupby("building_id"):
+            plots.append(create_plot([1, 1, 1, 1], g))
 
     return render_template('predictions.html',
                            buildings=buildings,
                            plots=plots)
+
 
 @main_bp.route('/faq')
 def faq_page():
@@ -67,9 +71,9 @@ def buildings_page():
                                 floorcount=request.form.get('floorcount'),
                                 latitude=request.form.get('latitude'),
                                 longitude=request.form.get('longitude'),
-                                user_id=current_user.name)
+                                user_id=current_user.id)
             db.session.add(building)
             db.session.commit()
 
-    buildings = Building.query.filter_by(user_id=current_user.name).all()
+    buildings = Building.query.filter_by(user_id=current_user.id).all()
     return render_template('building.html', buildings=buildings, form=BuildingForm())
