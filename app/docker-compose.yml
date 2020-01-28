@@ -1,8 +1,14 @@
 version: '3'
 services:
-  energapp:
+  model:
+    container_name: model
     build:
-      context: app
+      context: model
 
   db:
     container_name: db
+
+  energapp:
+    container_name: energapp
+    build:
+      context: app

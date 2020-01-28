@@ -95,3 +95,4 @@ target/
 # Config file with API key
 app/app/energApp/config.py
 app/app/energApp/models
+app/model/*.txt

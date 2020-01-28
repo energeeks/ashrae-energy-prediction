@@ -1,5 +1,16 @@
 version: '3'
 services:
+  model:
+    volumes:
+      - ./model:/model
+    ports:
+      - "5001:5001"
+    environment:
+      - FLASK_APP=prediction.py
+      - FLASK_DEBUG=1
+      - 'RUN=flask run --host=0.0.0.0 --port=5001'
+    command: flask run --host=0.0.0.0 --port=5001
+
   db:
     image: postgres
     restart: always
@@ -20,3 +31,4 @@ services:
     command: flask run --host=0.0.0.0 --port=80
     depends_on:
       - db
+      - model

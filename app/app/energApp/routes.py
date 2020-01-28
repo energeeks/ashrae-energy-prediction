@@ -21,6 +21,7 @@ def index():
     buildings = pd.read_sql(building_query.statement, building_query.session.bind)
     if len(buildings) > 0:
         prediction = predict_energy_consumption(buildings)
+
     return render_template('index.html', prediction=prediction)
 
 

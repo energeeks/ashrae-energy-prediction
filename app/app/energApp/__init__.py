@@ -1,5 +1,3 @@
-import os
-from lightgbm import Booster
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
@@ -33,10 +31,6 @@ def create_app():
 
         # Load weather API Key
         app.config['API_KEY'] = config.api_key
-
-        # Load model
-        app.config['MODEL'] = Booster(model_file="energApp/models/"
-                                                 + os.listdir("energApp/models/")[0])
 
         db.create_all()
         # db.drop_all()

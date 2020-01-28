@@ -1,6 +1,6 @@
 import numpy as np
 import pandas as pd
-from flask import current_app
+import requests
 from meteocalc import feels_like
 
 from .weather import get_forecast, parse_request
@@ -44,12 +44,16 @@ def predict_energy_consumption(buildings):
 
     df = encode_categorical_data(df)
 
+    df.reset_index(inplace=True, drop=True)
     building_ids = df["building_id"]
     timestamps = df["timestamp"]
     df.drop(columns=["timestamp", "month", "wind_direction", "wind_speed", "building_id"], inplace=True)
 
-    lgbm_model = current_app.config['MODEL']
-    predictions = pd.DataFrame({"reading": np.expm1(lgbm_model.predict(df)),
+    model_endpoint = "http://model:5001/predict"
+    data = df.to_json()
+    response = requests.get(model_endpoint, json=data).json()
+
+    predictions = pd.DataFrame({"reading": response["prediction"],
                                 "building_id": building_ids,
                                 "meter": df["meter"],
                                 "timestamp": timestamps})
