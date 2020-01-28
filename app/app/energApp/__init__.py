@@ -14,7 +14,7 @@ login_manager = LoginManager()
 
 def create_app():
     app = Flask(__name__)
-    install_cache('weather_cache', backend = 'sqlite', expire_after = 60)
+    install_cache('weather_cache', backend='memory', expire_after=60)
 
     app.config['SECRET_KEY'] = 'hJp3ZCMLRvChfj8XpuQv48jTNEC8WPIm'
     app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql+psycopg2://ener:geek@db/energeek_app'
@@ -36,7 +36,7 @@ def create_app():
 
         # Load model
         app.config['MODEL'] = Booster(model_file="energApp/models/"
-                                                + os.listdir("energApp/models/")[0])
+                                                 + os.listdir("energApp/models/")[0])
 
         db.create_all()
         # db.drop_all()
