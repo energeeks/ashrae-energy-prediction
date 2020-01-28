@@ -12,6 +12,7 @@ RUN apt-get update && \
         wtforms \
         flask-admin \
         requests \
+	requests-cache \
         pandas \
         lightgbm \
         plotly \
