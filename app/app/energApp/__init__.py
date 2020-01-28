@@ -14,7 +14,7 @@ login_manager = LoginManager()
 
 def create_app():
     app = Flask(__name__)
-    install_cache('weather_cache', backend = 'sqlite', expire_after = 30)
+    install_cache('weather_cache', backend = 'sqlite', expire_after = 60)
 
     app.config['SECRET_KEY'] = 'hJp3ZCMLRvChfj8XpuQv48jTNEC8WPIm'
     app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///db.sqlite'
