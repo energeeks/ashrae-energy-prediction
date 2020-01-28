@@ -6,6 +6,7 @@ from flask_login import LoginManager
 from flask_bootstrap import Bootstrap
 from flask_admin import Admin
 from flask_admin.contrib.sqla import ModelView
+from requests_cache import install_cache
 
 db = SQLAlchemy()
 login_manager = LoginManager()
@@ -13,6 +14,7 @@ login_manager = LoginManager()
 
 def create_app():
     app = Flask(__name__)
+    install_cache('weather_cache', backend = 'sqlite', expire_after = 60)
 
     app.config['SECRET_KEY'] = 'hJp3ZCMLRvChfj8XpuQv48jTNEC8WPIm'
     app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql+psycopg2://ener:geek@db/energeek_app'
