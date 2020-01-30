@@ -9,6 +9,9 @@ Have fun checking out our stuff!
 
 Cheers
 
+Phase 1 - The Kaggle Challenge
+------------
+
 Challenge Description
 ------------
 
@@ -86,6 +89,32 @@ Leaks
 
 Unfortunately a portion of the test labels have been leaked, which stirred the whole competition. If you want to use the leaks for your own experiments, you have the set the respective flags in the config file. Additionally the leaks have to be downloaded from [here](https://www.kaggle.com/yamsam/ashrae-leak-data-station) and be placed in `data/leaks`.
 
+
+Phase 2 - Developing a web application
+------------
+Description
+------------
+The aim of part two of this project focuses on the development of a web application, which must incorporate the predicted model from phase 1. The main idea is that the users submit their building's information and the application should be able to predict their energy consumption for the following year.
+
+Getting started
+---------------
+
+**Requirements:**
+
+ - Docker 19.03 or above (for [multi-stage builds](https://docs.docker.com/engine/userguide/eng-image/multistage-build/#use-multi-stage-builds))
+
+### Build the app
+
+Go into the project directory and run the command:
+
+``` shell
+$ docker-compose up --build
+```
+Open `http://localhost:8080` and enjoy!
+
+### Download the model
+To use the app, you must download the model from
+([here](https://syncandshare.lrz.de/getlink/fiEpYXwqbwsQjuBHaJ1ZRNnF/model-lgbm-gbdt-600-no-ids.txt)) and save it in the following directory app/energApp/models.
 
 Project Organization
 ------------
