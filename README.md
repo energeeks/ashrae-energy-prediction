@@ -110,7 +110,7 @@ Go into the project directory and run the command:
 ``` shell
 $ docker-compose up --build
 ```
-Open `http://localhost:8080` and enjoy!
+Open `http://localhost:80` and enjoy!
 
 ### Download the model
 To use the app, you must download the model from
