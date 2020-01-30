@@ -25,7 +25,7 @@ exclude_faulty_rows: True
 ###############################################################################
 # SPECIFY IF LEAKS SHOULD BE USED OR NOT                                      #
 ###############################################################################
-use_leaks: True
+use_leaks: False
 add_leaks_to_train: False
 
 ###############################################################################
@@ -40,6 +40,8 @@ drop:
   - timezone
   - country_code
   - location
+  - site_id
+  - building_id
 
 ###############################################################################
 # DEFINE PARAMETERS FOR THE LGBM MODEL                                        #
