@@ -114,7 +114,7 @@ Open `http://localhost:80` and enjoy!
 
 ### Download the model
 To use the app, you must download the model from
-([here](https://syncandshare.lrz.de/getlink/fiEpYXwqbwsQjuBHaJ1ZRNnF/model-lgbm-gbdt-600-no-ids.txt)) and save it in the following directory app/energApp/models.
+([here](https://syncandshare.lrz.de/getlink/fiEpYXwqbwsQjuBHaJ1ZRNnF/model-lgbm-gbdt-600-no-ids.txt)) and save it in the following directory ashrae-energy-prediction/app/model/ as model.txt.
 
 Project Organization
 ------------
