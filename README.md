@@ -103,6 +103,36 @@ App Architecture
 </p>
 The app consists of a classic nginx/uwsgi/flask stack and is deployed as a composition of three microsvervices: the app itself (front end / necessary backend), Postgres Database for user/building data, LightGBM model served via REST api.
 
+Model API
+----------------
+Our app comes with a built in API to receive energy predictions. The endpoint is available at port 5000 and extension `/predict`. To get a prediction you need to attach a json payload with following attributes. An example can be found [here](docs/example_request.json). The easiest way to obtain a fitting format is to convert a pandas dataframe to json using the built in methods.
+
+| Feature                   | Value |
+|---------------------------|-------|
+| primary\_use              |  Integer from 0 - 16 describing primary use of building.  |
+| square\_feet              |   Float describing logarithm of square feets of the building   |
+| year\_built               | Integer describing the year built   |
+| cloud\_coverage           |   Float describing cloud coverage  |
+| meter                     |    Integer between 0 and 3 describing the desireg meter   |
+| floor\_count              |   Integer describing number of floors    |
+| air\_temperature          |   Float describing air temperature    |
+| relative\_humidity        |    Float describing relative humidity   |
+| dew\_temperature          |   Float describing dew temperature    |
+| precip\_depth\_1\_hr      |   Float describing hourly precipitation     |
+| air\_temp\_f              |   Float describing feels like temperature    |
+| feels\_like\_temp         |  Float describing feels like temperature     |
+| hour                      |   Integer between 0 and 23    |
+| weekday                   |   Integer between 0 and 6    |
+| area\_per\_floor          |   Float with square\_feet /  floor\_count  |
+| outlier\_square\_feet     |    Boolean if square feet is an outlier (usually no)   |
+| outlier\_area\_per\_floor |   Boolean if area per floor is an outlier (usually no)    |
+| air\_temperature\_6\_lag  |   6 hour Rolling Average |
+| air\_temperature\_24\_lag |    24 hour Rolling Average   |
+| dew\_temperature\_6\_lag  |    6 hour Rolling Average   |
+| dew\_temperature\_24\_lag |    24 hour Rolling Average   |
+| cloud\_coverage\_6\_lag   |   6 hour Rolling Average    |
+| cloud\_coverage\_24\_lag  |   24 hour Rolling Average    |
+
 Getting started
 ---------------
 
