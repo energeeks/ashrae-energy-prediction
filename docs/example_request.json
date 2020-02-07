@@ -1,0 +1,117 @@
+{
+   "primary_use":{
+      "0":0,
+      "1":0
+   
+},
+   "square_feet":{
+      "0":9.9034875525,
+      "1":9.9034875525
+   
+},
+   "year_built":{
+      "0":29,
+      "1":29
+   
+},
+   "cloud_coverage":{
+      "0":0,
+      "1":0
+   
+},
+   "meter":{
+      "0":0,
+      "1":0
+   
+},
+   "floor_count":{
+      "0":4,
+      "1":4
+   
+},
+   "air_temperature":{
+      "0":3.08,
+      "1":-0.8
+   
+},
+   "relative_humidity":{
+      "0":57,
+      "1":78
+   
+},
+   "dew_temperature":{
+      "0":-5.52,
+      "1":-5.2
+   
+},
+   "precip_depth_1_hr":{
+      "0":0,
+      "1":0
+   
+},
+   "air_temp_f":{
+      "0":37.544,
+      "1":30.56
+   
+},
+   "feels_like_temp":{
+      "0":-5.8584438969,
+      "1":-12.6759155597
+   
+},
+   "hour":{
+      "0":15,
+      "1":18
+   
+},
+   "weekday":{
+      "0":4,
+      "1":4
+   
+},
+   "area_per_floor":{
+      "0":8.5171931914,
+      "1":8.5171931914
+   
+},
+   "outlier_square_feet":{
+      "0":false,
+      "1":false
+   
+},
+   "outlier_area_per_floor":{
+      "0":false,
+      "1":false
+   
+},
+   "air_temperature_6_lag":{
+      "0":3.08,
+      "1":1.5
+   
+},
+   "air_temperature_24_lag":{
+      "0":3.08,
+      "1":1.5
+   
+},
+   "dew_temperature_6_lag":{
+      "0":-5.52,
+      "1":-5.51
+   
+},
+   "dew_temperature_24_lag":{
+      "0":-5.52,
+      "1":-5.51
+   
+},
+   "cloud_coverage_6_lag":{
+      "0":0,
+      "1":0
+   
+},
+   "cloud_coverage_24_lag":{
+      "0":0,
+      "1":0
+   
+}
+}
