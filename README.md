@@ -77,7 +77,7 @@ Getting started
    
 6. **Submit to Kaggle**
 
-The submission file can be uploaded to the respective Kaggle challenge simply via the CLI tool.
+   The submission file can be uploaded to the respective Kaggle challenge simply via the CLI tool.
    ```
    kaggle competitions submit -c ashrae-energy-prediction -f submission.csv -m "<submit message>"
    ```
@@ -87,14 +87,21 @@ The submission file can be uploaded to the respective Kaggle challenge simply vi
 Leaks
 ------------
 
-Unfortunately a portion of the test labels have been leaked, which stirred the whole competition. If you want to use the leaks for your own experiments, you have the set the respective flags in the config file. Additionally the leaks have to be downloaded from [here](https://www.kaggle.com/yamsam/ashrae-leak-data-station) and be placed in `data/leaks`.
+Unfortunately a portion of the test labels have been leaked, which stirred the whole competition. If you want to use the leaks for your own experiments, you have the set the respective flags in the config file. Additionally the leaks have to be downloaded from [here](https://www.kaggle.com/yamsam/ashrae-leak-data-station) and be placed in `./data/leaks`.
 
 
 Phase 2 - Developing a web application
 ------------
 Description
 ------------
-The aim of part two of this project focuses on the development of a web application, which must incorporate the predicted model from phase 1. The main idea is that the users submit their building's information and the application should be able to predict their energy consumption for the following year.
+The aim of part two of this project focuses on the development of a web application, which must incorporate the predicted model from phase 1. Obviously this is now more or less a proof of concept, but the main idea is that users (e.g. housing associations) can enter their real estates and are able to predict energy consumption of these for a defined period of time. Hence time points with high energy needs can be identified. So far the forecast only includes a range of 5 days since this is the limit for free usage of our chosen weather api.
+
+App Architecture
+----------------
+<p align="center">
+<img src="docs/app_architecture.png" height="250px">
+</p>
+The app consists of a classic nginx/uwsgi/flask stack and is deployed as a composition of three microsvervices: the app itself (front end / necessary backend), Postgres Database for user/building data, LightGBM model served via REST api.
 
 Getting started
 ---------------
@@ -105,7 +112,7 @@ Getting started
 
 ### Build the app
 
-Go into the project directory and run the command:
+Go into `./app` and run the command:
 
 ``` shell
 $ docker-compose up --build
@@ -114,7 +121,7 @@ Open `http://localhost:80` and enjoy!
 
 ### Download the model
 To use the app, you must download the model from
-([here](https://syncandshare.lrz.de/getlink/fiEpYXwqbwsQjuBHaJ1ZRNnF/model-lgbm-gbdt-600-no-ids.txt)) and save it in the following directory ashrae-energy-prediction/app/model/ as model.txt.
+([here](https://syncandshare.lrz.de/getlink/fiEpYXwqbwsQjuBHaJ1ZRNnF/model-lgbm-gbdt-600-no-ids.txt)) and save it as `./app/model/model.txt`.
 
 Project Organization
 ------------
@@ -122,6 +129,7 @@ Project Organization
     ├── LICENSE
     ├── Makefile           <- Makefile with commands like `make data` or `make train`
     ├── README.md          <- The top-level README for developers using this project.
+    ├── app                <- The top-level directory for all files regarding the web app.
     ├── data
     │   ├── external       <- Data from third party sources.
     │   ├── interim        <- Intermediate data that has been transformed.
@@ -135,7 +143,7 @@ Project Organization
     ├── notebooks          <- Jupyter notebooks. Naming convention is a number (for ordering),
     │                         the creator's initials, and a short `-` delimited description, e.g.
     │                         `1.0-jqp-initial-data-exploration`.
-    │    │
+    │    
     ├── reports            <- Generated analysis as HTML, PDF, LaTeX, etc.
     │   └── figures        <- Generated graphics and figures to be used in reporting
     │
