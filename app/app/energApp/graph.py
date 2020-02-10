@@ -3,7 +3,8 @@ import plotly.graph_objs as go
 import json
 
 
-def create_plot(meters, prediction):
+def create_plot(elements, prediction):
+    air_temperature = prediction["air_temperature"].loc[prediction["meter"] == 0]
     reading_0 = prediction["reading"].loc[prediction["meter"] == 0]
     reading_1 = prediction["reading"].loc[prediction["meter"] == 1]
     reading_2 = prediction["reading"].loc[prediction["meter"] == 2]
@@ -12,32 +13,41 @@ def create_plot(meters, prediction):
 
     data = []
 
-    if meters[0]:
+    if elements[0]:
         data.append(go.Scatter(x=timestamp, y=reading_0,
                                mode='lines+markers',
                                name='Electricity',
                                line=dict(color='darkolivegreen'),
                                showlegend=False))
-    if meters[1]:
+    if elements[1]:
         data.append(go.Scatter(x=timestamp, y=reading_1,
                                mode='lines+markers',
                                name='Chilled Water',
                                line=dict(color='aqua'),
                                showlegend=False))
-    if meters[2]:
+    if elements[2]:
         data.append(go.Scatter(x=timestamp, y=reading_2,
                                mode='lines+markers',
                                name='Steam',
                                line=dict(color='aquamarine'),
                                showlegend=False))
-    if meters[3]:
+    if elements[3]:
         data.append(go.Scatter(x=timestamp, y=reading_3,
                                mode='lines+markers',
                                name='Hot Water',
                                line=dict(color='darkturquoise'),
                                showlegend=False))
+
+    if elements[4]:
+        data.append(go.Scatter(x=timestamp, y=air_temperature,
+                               mode='lines',
+                               name='Air Temperature',
+                               opacity=0.3,
+                               yaxis='y2',
+                               line=dict(color='grey'),
+                               showlegend=False))
     layout = {
-        "height": 200,
+        "height": 230,
         "margin": go.layout.Margin(
             t=20,
             b=30
@@ -47,6 +57,11 @@ def create_plot(meters, prediction):
             "linecolor": "#001f07",
             "mirror": True,
             "title": "Energy Consumption"
+        },
+        "yaxis2": {
+            "title": "Air Temperature",
+            "overlaying": "y",
+            "side": "right"
         },
         "xaxis": {
             "linecolor": "#001f07",

@@ -29,7 +29,7 @@ def predictions_page():
     if len(buildings) > 0:
         prediction = predict_energy_consumption(buildings)
         for _, g in prediction.groupby("building_id"):
-            plots.append(create_plot([1, 1, 1, 1], g))
+            plots.append(create_plot([1, 1, 1, 1, 1], g))
 
     return render_template('predictions.html',
                            buildings=buildings,
@@ -49,7 +49,8 @@ def change_meters():
     meter1 = int(request.args["m1"])
     meter2 = int(request.args["m2"])
     meter3 = int(request.args["m3"])
-    return create_plot([meter0, meter1, meter2, meter3], prediction_building)
+    air_temperature = int(request.args["at"])
+    return create_plot([meter0, meter1, meter2, meter3, air_temperature], prediction_building)
 
 
 @main_bp.route('/buildings', methods=['GET', 'POST'])
