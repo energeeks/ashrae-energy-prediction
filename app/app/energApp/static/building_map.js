@@ -32,3 +32,31 @@ marker.on('dragend', function(event) {
 $('#buildingModal').on('shown.bs.modal', function(){
     mymap.invalidateSize();
  });
+
+
+let building_id = document.getElementsByClassName("building-id");
+let current_building;
+for (let i = 0; i < building_id.length; i++) {
+  building_id[i].addEventListener("click", function() {
+        current_building = (this.getAttribute("data-bid"));
+});
+}
+
+
+let delete_building = document.getElementsByClassName("delete-building");
+
+for (let i = 0; i < delete_building.length; i++) {
+  delete_building[i].addEventListener("click", function() {
+        $.ajax({
+            url: "/delete_building",
+            type: "GET",
+            contentType: "application/json;charset=UTF-8",
+            data: {
+                "building": current_building
+            },
+            success: function () {
+                window.location.reload();
+            }
+        });
+});
+}

@@ -1,5 +1,5 @@
 import pandas as pd
-from flask import render_template, Blueprint, request
+from flask import render_template, Blueprint, request, json
 from flask_login import login_required, current_user
 
 from .forms import BuildingForm
@@ -51,6 +51,16 @@ def change_meters():
     meter3 = int(request.args["m3"])
     air_temperature = int(request.args["at"])
     return create_plot([meter0, meter1, meter2, meter3, air_temperature], prediction_building)
+
+
+@main_bp.route('/delete_building', methods=['GET', 'POST'])
+def delete_building():
+    building = int(request.args["building"])
+    db.session.query(Building).filter(Building.id == building).delete()
+    db.session.commit()
+
+    success = json.dumps({'success': True}), 200, {'ContentType': 'application/json'}
+    return success
 
 
 @main_bp.route('/buildings', methods=['GET', 'POST'])
