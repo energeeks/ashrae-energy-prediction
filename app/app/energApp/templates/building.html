@@ -14,17 +14,37 @@
         </div>
     </div>
 </div>
-
-          {% for b in buildings %}
-<div class="col-lg-12 border rounded", style="padding: 10px; margin-bottom: 10px">
-    <h6>{{ b.name}}</h6>
-    <span style="margin-right: 40px">Use: {{b.primary_use}}</span>
-    <span style="margin-right: 40px">{{b.square_feet}} sq ft</span>
-    <span style="margin-right: 40px">{{b.year_built}}</span>
-    <span style="margin-right: 40px">{{b.floorcount}} Floor(s)</span>
+{% for b in buildings %}
+<div class="col-lg-12", style="padding: 10px; margin-bottom: 10px">
+    <p><strong>{{ b.name}}</strong></p>
+    <hr/>
+    <table class ="table table-hover" style="width: 161px;">
+    <tbody>
+        <tr>
+        <td style="width: 82px;">
+        <p><strong>Use</strong></p>
+        <p>[{{b.primary_use}}]</p>
+        </td>
+        <td style="width: 82px;">
+            <p style="text-align: end;"><strong>Floors</strong></p>
+        <p style="text-align: end;">{{b.floorcount}}</p>
+        </td>
+        </tr>
+        <tr>
+        <td style="width: 82px;">
+        <p><strong>Size</strong></p>
+        <p>{{b.square_feet}} sq ft</p>
+        </td>
+        <td style="width: 82px;">
+            <p style="text-align: end;"><strong>Year</strong></p>
+            <p style="text-align: end;">{{b.year_built}}</p>
+        </td>
+        </tr>
+    </tbody>
+    </table>
 </div>
-          {% endfor %}
-
+<hr style="height:1px;border:none;background-color:darkgreen;"/>
+{% endfor %}
 
 <!-- Modal -->
 <div class="modal fade" id="buildingModal" tabindex="-1">
