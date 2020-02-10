@@ -53,16 +53,6 @@ def change_meters():
     return create_plot([meter0, meter1, meter2, meter3, air_temperature], prediction_building)
 
 
-@main_bp.route('/delete_building', methods=['GET', 'POST'])
-def delete_building():
-    building = int(request.args["building"])
-    db.session.query(Building).filter(Building.id == building).delete()
-    db.session.commit()
-
-    success = json.dumps({'success': True}), 200, {'ContentType': 'application/json'}
-    return success
-
-
 @main_bp.route('/buildings', methods=['GET', 'POST'])
 @login_required
 def buildings_page():
@@ -82,3 +72,13 @@ def buildings_page():
 
     buildings = Building.query.filter_by(user_id=current_user.id).all()
     return render_template('building.html', buildings=buildings, form=BuildingForm())
+
+
+@main_bp.route('/delete_building', methods=['GET', 'POST'])
+def delete_building():
+    building = int(request.args["building"])
+    db.session.query(Building).filter(Building.id == building).delete()
+    db.session.commit()
+
+    success = json.dumps({'success': True}), 200, {'ContentType': 'application/json'}
+    return success

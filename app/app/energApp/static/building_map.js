@@ -55,7 +55,7 @@ for (let i = 0; i < delete_building.length; i++) {
                 "building": current_building
             },
             success: function () {
-                window.location.reload();
+                window.location.href = "buildings";
             }
         });
 });
