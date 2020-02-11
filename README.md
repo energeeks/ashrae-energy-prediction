@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.com/energeeks/ashrae-energy-prediction.svg?branch=master)](https://travis-ci.com/energeeks/ashrae-energy-prediction)
+
 ASHRAE - Great Energy Predictor III Challenge
 ====================================
 
