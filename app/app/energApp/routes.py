@@ -43,6 +43,10 @@ def faq_page():
 
 @main_bp.route('/plot', methods=['GET', 'POST'])
 def change_meters():
+    """
+    Responds to a ajax call which lets the user change the displayed elements
+    of the graph.
+    """
     prediction_building = prediction.loc[prediction["building_id"] == int(request.args["building"])]
 
     meter0 = int(request.args["m0"])
@@ -56,6 +60,10 @@ def change_meters():
 @main_bp.route('/buildings', methods=['GET', 'POST'])
 @login_required
 def buildings_page():
+    """
+    Displays the buildings in the current user account. Further a new building
+    can be created via POST request.
+    """
     building_form = BuildingForm(request.form)
     if request.method == 'POST':
         if building_form.validate():
@@ -76,9 +84,11 @@ def buildings_page():
 
 @main_bp.route('/delete_building', methods=['GET', 'POST'])
 def delete_building():
+    """
+    Responds to an ajax call which deletes a building from the database.
+    """
     building = int(request.args["building"])
     db.session.query(Building).filter(Building.id == building).delete()
     db.session.commit()
-
     success = json.dumps({'success': True}), 200, {'ContentType': 'application/json'}
     return success

@@ -7,6 +7,12 @@ from .weather import get_forecast, parse_request
 
 
 def predict_energy_consumption(buildings):
+    """
+    Predicts energy consumption with a provided list of buildings.
+    The model is being served as a rest endpoint.
+    :param buildings: List of buildings for which the prediction should be done.
+    :return: Data frame with the predicted readings.
+    """
     forecasts = [forecast_for_building(building) for i, building in buildings.iterrows()]
     df = pd.concat(forecasts)
     df.drop(columns="id", inplace=True)
@@ -63,6 +69,11 @@ def predict_energy_consumption(buildings):
 
 
 def forecast_for_building(building):
+    """
+    Based on longitude and latitude a weather prediction is fetched from the API.
+    :param building: A particular building
+    :return: weather forecast for the specific building.
+    """
     response = get_forecast(building["latitude"], building["longitude"])
     result = parse_request(response)
     result["building_id"] = building["id"]

@@ -6,6 +6,9 @@ from wtforms.validators import ValidationError, DataRequired, \
 
 
 class SignupForm(FlaskForm):
+    """
+    User interface for signing up at the app.
+    """
     name = StringField('Name',
                        validators=[DataRequired(message=('Please enter a nickname.'))])
     password = PasswordField('Password',
@@ -17,12 +20,18 @@ class SignupForm(FlaskForm):
 
 
 class LoginForm(FlaskForm):
+    """
+    User interface for signing up at the app.
+    """
     name = StringField('Name', validators=[DataRequired('Please enter a valid name.')])
     password = PasswordField('Password', validators=[DataRequired('Please enter your password.')])
     submit = SubmitField('Log In')
 
 
 class BuildingForm(FlaskForm):
+    """
+    Interface for adding a building to a user account.
+    """
     name = StringField('Name')
     fields = [
         ('Education', 'Education'),

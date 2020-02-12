@@ -12,6 +12,9 @@ auth_bp = Blueprint('auth_bp', __name__,
 
 @auth_bp.route('/login', methods=['GET', 'POST'])
 def login_page():
+    """
+    Interface for logging in a user.
+    """
     if current_user.is_authenticated:
         return redirect(url_for('main_bp.index'))
     login_form = LoginForm(request.form)
@@ -32,6 +35,9 @@ def login_page():
 
 @auth_bp.route('/signup', methods=['GET', 'POST'])
 def signup_page():
+    """
+    Interface for signing up and therefore creating a user.
+    """
     signup_form = SignupForm(request.form)
     if request.method == 'POST':
         if signup_form.validate():
@@ -53,14 +59,18 @@ def signup_page():
 @auth_bp.route("/logout")
 @login_required
 def logout_page():
-    """User log-out logic."""
+    """
+    User log-out logic.
+    """
     logout_user()
     return redirect(url_for('main_bp.index'))
 
 
 @login_manager.user_loader
 def load_user(user_id):
-    """Check if user is logged-in on every page load."""
+    """
+    Check if user is logged-in on every page load.
+    """
     if user_id is not None:
         return User.query.get(user_id)
     return None
@@ -68,6 +78,8 @@ def load_user(user_id):
 
 @login_manager.unauthorized_handler
 def unauthorized():
-    """Redirect unauthorized users to Login page."""
+    """
+    Redirect unauthorized users to Login page.
+    """
     flash('You must be logged in to view that page.')
     return redirect(url_for('auth_bp.login_page'))

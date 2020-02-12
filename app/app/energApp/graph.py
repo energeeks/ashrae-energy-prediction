@@ -4,6 +4,14 @@ import json
 
 
 def create_plot(elements, prediction):
+    """
+    Creates a plot with the provided prediction data and returns it as json
+    for further processing.
+    :param elements: List containing boolean values, whether some graph
+    elements should be displayed. [0-3} = meters, [4] = air temperature
+    :param prediction: Data Frame containing the predicted readings.
+    :return: Plotly plot as json.
+    """
     air_temperature = prediction["air_temperature"].loc[prediction["meter"] == 0]
     reading_0 = prediction["reading"].loc[prediction["meter"] == 0]
     reading_1 = prediction["reading"].loc[prediction["meter"] == 1]
