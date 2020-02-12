@@ -4,21 +4,30 @@
 {% block body %}
 
 <div class="container">
-    <div class="row">
-        <div class="col-sm-6">
-          <div class-="weather-tile"><img src="../static/images/weather-tile.png" class="w3-round" alt="weather"></div>
+    <div class="row" style="margin-top: 1em;">
+         <div class="col-sm-1"></div>
+        <div class="col-sm-5">
+            <div class-="weather-tile"><img src="../static/images/weather-tile.jpg" class="w3-round" alt="weather"></div>
         </div>
-        <div class="col-sm-6">
-          <div class-="example-tile"><img src="../static/images/weather-tile.png" class="w3-round" alt="logo"></div>
+        <div class="col-sm-5">
+          <div class-="example-tile"><img src="../static/images/example-tile.png" class="w3-round" alt="trend"></div>
         </div>
+         <div class="col-sm-1"></div>
     </div>
-    <div class="row">
-        <div class="col-sm-6">
-          <div class-="aboutus-tile"><img src="../static/images/weather-tile.png" class="w3-round" alt="logo"></div>
+    <div class="row" style="margin-top: 2em;">
+         <div class="col-sm-1"></div>
+        <div class="col-sm-5">
+            <a href={{url_for('main_bp.faq_page')}}>
+          <div class-="FAQ-tile"><img src="../static/images/faq-tile.jpg" class="w3-round" alt="faq"></div>
+            </a>
         </div>
-        <div class="col-sm-6">
-          <div class-="FAQ-tile"><img src="../static/images/weather-tile.png" class="w3-round" alt="logo"></div>
+
+        <div class="col-sm-5">
+            <a href="https://github.com/energeeks/ashrae-energy-prediction">
+            <div class-="git-tile"><img src="../static/images/git-tile.jpg" class="w3-round" alt="git"></div>
+            </a>
         </div>
+        <div class="col-sm-1"></div>
     </div>
 </div>
 

@@ -45,7 +45,7 @@ def predictions_page():
 
 @main_bp.route('/faq')
 def faq_page():
-    return render_template('faq.html')
+    return render_template('landing.html')
 
 
 @main_bp.route('/plot', methods=['GET', 'POST'])
