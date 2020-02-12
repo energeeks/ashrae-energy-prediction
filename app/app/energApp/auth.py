@@ -13,7 +13,7 @@ auth_bp = Blueprint('auth_bp', __name__,
 @auth_bp.route('/login', methods=['GET', 'POST'])
 def login_page():
     if current_user.is_authenticated:
-        return redirect(url_for('main_bp.index'))
+        return redirect(url_for('main_bp.landing'))
     login_form = LoginForm(request.form)
     if request.method == 'POST':
         if login_form.validate():
@@ -44,7 +44,7 @@ def signup_page():
                 db.session.add(user)
                 db.session.commit()
                 login_user(user)
-                return redirect(url_for('main_bp.index'))
+                return redirect(url_for('main_bp.landing'))
             flash('A user already exists with that nickname.')
             return redirect(url_for('auth_bp.signup_page'))
     return render_template('/signup.html', form=SignupForm())
