@@ -18,7 +18,9 @@
 
     <div id="faq-collapse-1" class="collapse show" aria-labelledby="faq-heading-1" data-parent="#faq-accordion">
       <div class="card-body">
-        Write sth about the app
+        EnergApp is the phase 2 of our Kaggle Challange. The aim of EnergApp is to incorporate the predicted model from phase 1.
+        The idea behind this is that users can submit their building's data and in return they get the predicted energy consumption
+        for said building.
       </div>
     </div>
   </div>
@@ -32,7 +34,7 @@
     </div>
     <div id="faq-collapse-2" class="collapse" aria-labelledby="faq-heading-2" data-parent="#faq-accordion">
       <div class="card-body">
-        Write...
+        In order to submit and manage your buildings, you have to sign up for our web application.
       </div>
     </div>
   </div>
@@ -40,13 +42,101 @@
     <div class="card-header" id="faq-heading-3">
       <h2 class="mb-0">
         <button class="btn btn-link collapsed" type="button" data-toggle="collapse" data-target="#faq-collapse-3" aria-expanded="false" aria-controls="faq-collapse-3">
-          How can i submit my building's data?
+          How can I submit my building's data?
         </button>
       </h2>
     </div>
     <div id="faq-collapse-3" class="collapse" aria-labelledby="faq-heading-3" data-parent="#faq-accordion">
       <div class="card-body">
+        You can add your buildings by going to Buildings and than clicking on the add button.
+      </div>
+    </div>
+  </div>
+   <div class="card">
+    <div class="card-header" id="faq-heading-4">
+      <h2 class="mb-0">
+        <button class="btn btn-link collapsed" type="button" data-toggle="collapse" data-target="#faq-collapse-4" aria-expanded="false" aria-controls="faq-collapse-4">
+          Where can I manage my buildings?
+        </button>
+      </h2>
+    </div>
+    <div id="faq-collapse-4" class="collapse" aria-labelledby="faq-heading-3" data-parent="#faq-accordion">
+      <div class="card-body">
+        You can manage your buildings by going to Buildings. There you will get a list of all your submitted buildings.
+      </div>
+    </div>
+  </div>
+   <div class="card">
+    <div class="card-header" id="faq-heading-5">
+      <h2 class="mb-0">
+        <button class="btn btn-link collapsed" type="button" data-toggle="collapse" data-target="#faq-collapse-5" aria-expanded="false" aria-controls="faq-collapse-5">
+          What model are the predictions based on?
+        </button>
+      </h2>
+    </div>
+    <div id="faq-collapse-5" class="collapse" aria-labelledby="faq-heading-3" data-parent="#faq-accordion">
+      <div class="card-body">
+        We trained our model by using Light GBM, which is a high-performance gradient boosting framework based on decision tree algorithm (GBDT).
+
+      </div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-header" id="faq-heading-6">
+      <h2 class="mb-0">
+        <button class="btn btn-link collapsed" type="button" data-toggle="collapse" data-target="#faq-collapse-6" aria-expanded="false" aria-controls="faq-collapse-6">
+          How well can I trust the predictions?
+        </button>
+      </h2>
+    </div>
+    <div id="faq-collapse-6" class="collapse" aria-labelledby="faq-heading-3" data-parent="#faq-accordion">
+      <div class="card-body">
         Procedure
+      </div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-header" id="faq-heading-7">
+      <h2 class="mb-0">
+        <button class="btn btn-link collapsed" type="button" data-toggle="collapse" data-target="#faq-collapse-7" aria-expanded="false" aria-controls="faq-collapse-7">
+          How can I access the model?
+        </button>
+      </h2>
+    </div>
+    <div id="faq-collapse-7" class="collapse" aria-labelledby="faq-heading-3" data-parent="#faq-accordion">
+      <div class="card-body">
+        We provide our model in txt-format, which can be downloaded from <a href="https://syncandshare.lrz.de/getlink/fiEpYXwqbwsQjuBHaJ1ZRNnF/model-lgbm-gbdt-600-no-ids.txt">here</a> and save it under save it as ./app/model/.
+      </div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-header" id="faq-heading-8">
+      <h2 class="mb-0">
+        <button class="btn btn-link collapsed" type="button" data-toggle="collapse" data-target="#faq-collapse-8" aria-expanded="false" aria-controls="faq-collapse-8">
+          What input is required for Model API?
+        </button>
+      </h2>
+    </div>
+    <div id="faq-collapse-8" class="collapse" aria-labelledby="faq-heading-3" data-parent="#faq-accordion">
+      <div class="card-body">
+        Our app comes with a built in API to receive energy predictions. To get a prediction you need to attach a json payload containing various
+        attributes. We provide a list of all available attributes as well as an example request can be found in our GitHub repository:
+        <a href="https://github.com/energeeks/ashrae-energy-prediction">https://github.com/energeeks/ashrae-energy-prediction</a>.
+      </div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-header" id="faq-heading-9">
+      <h2 class="mb-0">
+        <button class="btn btn-link collapsed" type="button" data-toggle="collapse" data-target="#faq-collapse-9" aria-expanded="false" aria-controls="faq-collapse-9">
+          How to contact us?
+        </button>
+      </h2>
+    </div>
+    <div id="faq-collapse-9" class="collapse" aria-labelledby="faq-heading-3" data-parent="#faq-accordion">
+      <div class="card-body">
+        You can check us out in GitHub at <a href="https://github.com/energeeks/ashrae-energy-prediction">https://github.com/energeeks/ashrae-energy-prediction</a>. From there you can
+        contact the contributors of this project.
       </div>
     </div>
   </div>
