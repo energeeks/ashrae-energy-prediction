@@ -212,7 +212,7 @@ def start_cv_run(train_df, label, params, splits, verbose_eval,
     be done with Grouped-CV, only using readings of meter 0
     """
     if grouped_on_building:
-        output_filepath = output_filepath + "grouped_cv"
+        output_filepath = output_filepath + "_grouped_cv"
         train_df = train_df[train_df.meter == 0]
         label = train_df.meter_reading
         groups = train_df.building_id
