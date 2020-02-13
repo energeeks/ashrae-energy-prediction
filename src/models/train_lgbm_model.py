@@ -48,7 +48,7 @@ def main(mode, input_filepath, output_filepath):
                                 output_filepath)
     elif mode == "cv":
         start_cv_run(train_df, label, params, splits, verbose_eval,
-                     num_boost_round, early_stopping_rounds, output_filepath)
+                     num_boost_round, early_stopping_rounds, output_filepath, grouped_on_building)
     elif mode == "by_meter":
         start_full_by_meter_run(train_df, label, params, verbose_eval,
                                 num_boost_round, early_stopping_rounds, output_filepath)
