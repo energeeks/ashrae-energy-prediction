@@ -38,6 +38,7 @@ def main(mode, input_filepath, output_filepath):
     early_stopping_rounds = cfg["lgbm_early_stopping_rounds"]
     splits = cfg["lgbm_splits_for_cv"]
     verbose_eval = cfg["lgbm_verbose_eval"]
+    grouped_on_building = cfg["lgbm_cv_grouped_on_building"]
     ###########################################################################
 
     if mode == "full":
@@ -192,7 +193,8 @@ def start_full_by_building_run(train_df, label, params, splits, verbose_eval,
 
 
 def start_cv_run(train_df, label, params, splits, verbose_eval,
-                 num_boost_round, early_stopping_rounds, output_filepath):
+                 num_boost_round, early_stopping_rounds, output_filepath,
+                 grouped_on_building):
     """
     Starts a Cross Validation Run with the parameters provided.
     Scores will be documented and models will be saved.
@@ -206,12 +208,23 @@ def start_cv_run(train_df, label, params, splits, verbose_eval,
     :param early_stopping_rounds: If no improvement of the validation score in
     n rounds occur, the training will be stopped.
     :param output_filepath: Directory that will contain the trained models.
+    :param grouped_ob_building: Logical indicating whether cross-validation should
+    be done with Grouped-CV, only using readings of meter 0
     """
-    output_filepath = output_filepath + "_cv"
+    if grouped_on_building:
+        output_filepath = output_filepath + "grouped_cv"
+        train_df = train_df[train_df.meter == 0]
+        label = train_df.meter_reading
+        groups = train_df.building_id
+        gkf = GroupKFold(n_splits = splits)
+        indices = gkf.split(train_df, label, groups)
+    else:
+        output_filepath = output_filepath + "_cv"
+        kf = Kfold(nsplits = splits, shuffle = False, random = state = 1337)
+        indices = kf.split(train_df, label)
     cv_results = []
     with timer("Performing " + str(splits) + " fold cross-validation"):
-        kf = KFold(n_splits=splits, shuffle=False, random_state=1337)
-        for i, (train_index, test_index) in enumerate(kf.split(train_df, label)):
+        for i, (train_index, test_index) in enumerate(indices):
             with timer("~~~~ Fold %d of %d ~~~~" % (i + 1, splits)):
                 x_train, x_valid = train_df.iloc[train_index], train_df.iloc[test_index]
                 y_train, y_valid = label[train_index], label[test_index]
