@@ -209,19 +209,28 @@ def start_cv_run(train_df, label, params, splits, verbose_eval,
     :param early_stopping_rounds: If no improvement of the validation score in
     n rounds occur, the training will be stopped.
     :param output_filepath: Directory that will contain the trained models.
-    :param grouped_ob_building: Logical indicating whether cross-validation should
-    be done with Grouped-CV, only using readings of meter 0
+    :param grouped_on_building: Logical indicating whether cv should be done, by
+    grouping the folds on building_id.
     """
     if grouped_on_building:
-        output_filepath = output_filepath + "_grouped_cv"
-        train_df = train_df[train_df.meter == 0]
-        label = train_df.meter_reading
+        if not 'building_id' in train_df.columns:
+            raise ValueError(
+                "For grouped cv, the cross validation is grouped on building_id."
+                "Therefore it must be excluded from the drop section in the config file,"
+                "before using make data."
+                "Note that the building_id is still not included in the model,"
+                "it is needed for specifying the folds only and will be dropped afterwards.")
+        output_filepath = output_filepath + "grouped_cv"
+        is_meter0 = (train_df.meter == 0).values
+        train_df = train_df.iloc[is_meter0,]
+        label = label.iloc[is_meter0,]
         groups = train_df.building_id
+        train_df = drop_columns(train_df, 'building_id')
         gkf = GroupKFold(n_splits = splits)
         indices = gkf.split(train_df, label, groups)
     else:
         output_filepath = output_filepath + "_cv"
-        kf = Kfold(nsplits = splits, shuffle = False, random = state = 1337)
+        kf = Kfold(n_splits = splits, shuffle = False, random = state = 1337)
         indices = kf.split(train_df, label)
     cv_results = []
     with timer("Performing " + str(splits) + " fold cross-validation"):
