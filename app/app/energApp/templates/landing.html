@@ -4,22 +4,37 @@
 {% block body %}
 
 <div class="container">
+    <div class="row" style="margin: 1em;">
+     <div class="col-sm-1"></div>
+     <div class="col-sm-10">
+         <div class-="example-tile"><img src="../static/images/example-tile.jpg" class="w3-round" alt="trend"></div>
+     </div>
+     <div class="col-sm-1"></div>
+    </div>
     <div class="row" style="margin-top: 1em;">
-         <div class="col-sm-1"></div>
+        <div class="col-sm-1"></div>
         <div class="col-sm-5">
-            <div class-="weather-tile"><img src="../static/images/weather-tile.jpg" class="w3-round" alt="weather"></div>
+            <div class-="weather-tile">
+                <div id="openweathermap-widget-15"></div>
+<script>window.myWidgetParam ? window.myWidgetParam : window.myWidgetParam = [];  window.myWidgetParam.push({id: 15,cityid: '2867714',appid: '',units: 'metric',containerid: 'openweathermap-widget-15',  });  (function() {var script = document.createElement('script');script.async = true;script.charset = "utf-8";script.src = "//openweathermap.org/themes/openweathermap/assets/vendor/owm/js/weather-widget-generator.js";var s = document.getElementsByTagName('script')[0];s.parentNode.insertBefore(script, s);  })();</script>
+            </div>
         </div>
-        <div class="col-sm-5">
-          <div class-="example-tile"><img src="../static/images/example-tile.png" class="w3-round" alt="trend"></div>
-        </div>
+        <div class="col-sm-4"> <a href={{url_for('main_bp.faq_page')}}>
+          <div class-="FAQ-tile"><img src="../static/images/faq-tile.jpg" class="w3-round" alt="faq"></div>
+            </a></div>
          <div class="col-sm-1"></div>
     </div>
     <div class="row" style="margin-top: 2em;">
          <div class="col-sm-1"></div>
         <div class="col-sm-5">
-            <a href={{url_for('main_bp.faq_page')}}>
-          <div class-="FAQ-tile"><img src="../static/images/faq-tile.jpg" class="w3-round" alt="faq"></div>
-            </a>
+          <div class-="team-tile"><img src="Adrian_avatar.png" alt="Avatar" class="w3-left w3-circle">
+  <p>Adrian Uffmann</p>
+              <img src="Dario_avatar.png" alt="Avatar" class="w3-left w3-circle">
+  <p>Dario Lepke</p>
+              <img src="Erjona_avatar.png" alt="Avatar" class="w3-left w3-circle">
+  <p>Erjona Dervishi</p>
+              <img src="Tobias_avatar.png" alt="Avatar" class="w3-left w3-circle">
+  <p>Tobias Weber</p>
         </div>
 
         <div class="col-sm-5">
@@ -30,6 +45,7 @@
         <div class="col-sm-1"></div>
     </div>
 </div>
+
 
 
 {% endblock %}
