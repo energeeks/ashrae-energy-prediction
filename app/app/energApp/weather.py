@@ -4,12 +4,27 @@ from flask import current_app
 
 
 def get_forecast(lat, lon):
+    """
+    Using the API Key in config.py, a weather forecast is fetched from
+    openweathermap regarding a provided longitude and latitude.
+    :param lat: Latitude
+    :param lon: Longitude
+    :return: Request object with API response
+    """
     api_key = current_app.config['API_KEY']
-    url = "http://api.openweathermap.org/data/2.5/forecast?&units=metric&lat={}&lon={}&appid={}".format(lat, lon, api_key)
+    url = "http://api.openweathermap.org/data/2.5/forecast?" \
+          "&units=metric&lat={}&lon={}&appid={}"\
+        .format(lat, lon, api_key)
     return requests.get(url)
     
 
 def parse_request(request):
+    """
+    The response object from the request is parsed into a pandas data frame.
+    :param request: Response object from API and preferably obtained through
+    get_forecast().
+    :return: Data Frame with the obtained weather forecast.
+    """
     request = request.json()
     request = request['list']
 

@@ -1,6 +1,5 @@
 import pandas as pd
 import numpy as np
-import json
 from lightgbm import Booster
 from flask import Flask, jsonify, request, current_app
 
@@ -10,6 +9,11 @@ app.config['MODEL'] = Booster(model_file="model.txt")
 
 @app.route("/predict", methods=["GET", "POST"])
 def predict():
+    """
+    Takes a request with input data as payload and returns the predicted values
+    as json.
+    :return: predicted energy consumption
+    """
     data = {"success": False}
 
     df = request.json

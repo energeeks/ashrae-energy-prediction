@@ -1,5 +1,5 @@
 import pandas as pd
-from flask import render_template, Blueprint, request
+from flask import render_template, Blueprint, request, json
 from flask_login import login_required, current_user
 
 from .forms import BuildingForm
@@ -14,6 +14,7 @@ prediction = None
 
 
 @main_bp.route('/')
+
 @login_required
 def landing():
     global prediction
@@ -36,7 +37,7 @@ def predictions_page():
     if len(buildings) > 0:
         prediction = predict_energy_consumption(buildings)
         for _, g in prediction.groupby("building_id"):
-            plots.append(create_plot([1, 1, 1, 1], g))
+            plots.append(create_plot([1, 1, 1, 1, 1], g))
 
     return render_template('predictions.html',
                            buildings=buildings,
@@ -50,18 +51,27 @@ def faq_page():
 
 @main_bp.route('/plot', methods=['GET', 'POST'])
 def change_meters():
+    """
+    Responds to a ajax call which lets the user change the displayed elements
+    of the graph.
+    """
     prediction_building = prediction.loc[prediction["building_id"] == int(request.args["building"])]
 
     meter0 = int(request.args["m0"])
     meter1 = int(request.args["m1"])
     meter2 = int(request.args["m2"])
     meter3 = int(request.args["m3"])
-    return create_plot([meter0, meter1, meter2, meter3], prediction_building)
+    air_temperature = int(request.args["at"])
+    return create_plot([meter0, meter1, meter2, meter3, air_temperature], prediction_building)
 
 
 @main_bp.route('/buildings', methods=['GET', 'POST'])
 @login_required
 def buildings_page():
+    """
+    Displays the buildings in the current user account. Further a new building
+    can be created via POST request.
+    """
     building_form = BuildingForm(request.form)
     if request.method == 'POST':
         if building_form.validate():
@@ -78,3 +88,15 @@ def buildings_page():
 
     buildings = Building.query.filter_by(user_id=current_user.id).all()
     return render_template('building.html', buildings=buildings, form=BuildingForm())
+
+
+@main_bp.route('/delete_building', methods=['GET', 'POST'])
+def delete_building():
+    """
+    Responds to an ajax call which deletes a building from the database.
+    """
+    building = int(request.args["building"])
+    db.session.query(Building).filter(Building.id == building).delete()
+    db.session.commit()
+    success = json.dumps({'success': True}), 200, {'ContentType': 'application/json'}
+    return success

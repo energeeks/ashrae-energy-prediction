@@ -61,8 +61,14 @@
                         <a class="nav-link" href={{url_for('main_bp.buildings_page')}}>Buildings</a>
                     </li>
                     <li class="nav-item">
+                    
                         <a class="nav-link" href={{url_for('auth_bp.logout_page')}}><b>Log Out</b></a>
                     </li>
+                    {% else %}
+                    <li class="nav-item">
+                        <a class="nav-link" href={{url_for('auth_bp.login_page')}}><b>Log In</b></a>
+                    </li>
+                    {% endif %}
                 </ul>
             </div>
         </div>

@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.com/energeeks/ashrae-energy-prediction.svg?branch=master)](https://travis-ci.com/energeeks/ashrae-energy-prediction)
+
 ASHRAE - Great Energy Predictor III Challenge
 ====================================
 
@@ -77,7 +79,7 @@ Getting started
    
 6. **Submit to Kaggle**
 
-The submission file can be uploaded to the respective Kaggle challenge simply via the CLI tool.
+   The submission file can be uploaded to the respective Kaggle challenge simply via the CLI tool.
    ```
    kaggle competitions submit -c ashrae-energy-prediction -f submission.csv -m "<submit message>"
    ```
@@ -87,14 +89,51 @@ The submission file can be uploaded to the respective Kaggle challenge simply vi
 Leaks
 ------------
 
-Unfortunately a portion of the test labels have been leaked, which stirred the whole competition. If you want to use the leaks for your own experiments, you have the set the respective flags in the config file. Additionally the leaks have to be downloaded from [here](https://www.kaggle.com/yamsam/ashrae-leak-data-station) and be placed in `data/leaks`.
+Unfortunately a portion of the test labels have been leaked, which stirred the whole competition. If you want to use the leaks for your own experiments, you have the set the respective flags in the config file. Additionally the leaks have to be downloaded from [here](https://www.kaggle.com/yamsam/ashrae-leak-data-station) and be placed in `./data/leaks`.
 
 
 Phase 2 - Developing a web application
 ------------
 Description
 ------------
-The aim of part two of this project focuses on the development of a web application, which must incorporate the predicted model from phase 1. The main idea is that the users submit their building's information and the application should be able to predict their energy consumption for the following year.
+The aim of part two of this project focuses on the development of a web application, which must incorporate the predicted model from phase 1. Obviously this is now more or less a proof of concept, but the main idea is that users (e.g. housing associations) can enter their real estates and are able to predict energy consumption of these for a defined period of time. Hence time points with high energy needs can be identified. So far the forecast only includes a range of 5 days since this is the limit for free usage of our chosen weather api.
+
+App Architecture
+----------------
+<p align="center">
+<img src="docs/app_architecture.png" height="250px">
+</p>
+The app consists of a classic nginx/uwsgi/flask stack and is deployed as a composition of three microsvervices: the app itself (front end / necessary backend), Postgres Database for user/building data, LightGBM model served via REST api.
+
+Model API
+----------------
+Our app comes with a built in API to receive energy predictions. The endpoint is available at port 5000 and extension `/predict`. To get a prediction you need to attach a json payload with following attributes. An example can be found [here](docs/example_request.json). The easiest way to obtain a fitting format is to convert a pandas dataframe to json using the built in methods.
+
+| Feature                   | Value |
+|---------------------------|-------|
+| primary\_use              |  Integer from 0 - 16 describing primary use of building.  |
+| square\_feet              |   Float describing logarithm of square feets of the building   |
+| year\_built               | Integer describing the year built   |
+| cloud\_coverage           |   Float describing cloud coverage  |
+| meter                     |    Integer between 0 and 3 describing the desireg meter   |
+| floor\_count              |   Integer describing number of floors    |
+| air\_temperature          |   Float describing air temperature    |
+| relative\_humidity        |    Float describing relative humidity   |
+| dew\_temperature          |   Float describing dew temperature    |
+| precip\_depth\_1\_hr      |   Float describing hourly precipitation     |
+| air\_temp\_f              |   Float describing feels like temperature    |
+| feels\_like\_temp         |  Float describing feels like temperature     |
+| hour                      |   Integer between 0 and 23    |
+| weekday                   |   Integer between 0 and 6    |
+| area\_per\_floor          |   Float with square\_feet /  floor\_count  |
+| outlier\_square\_feet     |    Boolean if square feet is an outlier (usually no)   |
+| outlier\_area\_per\_floor |   Boolean if area per floor is an outlier (usually no)    |
+| air\_temperature\_6\_lag  |   6 hour Rolling Average |
+| air\_temperature\_24\_lag |    24 hour Rolling Average   |
+| dew\_temperature\_6\_lag  |    6 hour Rolling Average   |
+| dew\_temperature\_24\_lag |    24 hour Rolling Average   |
+| cloud\_coverage\_6\_lag   |   6 hour Rolling Average    |
+| cloud\_coverage\_24\_lag  |   24 hour Rolling Average    |
 
 Getting started
 ---------------
@@ -105,7 +144,7 @@ Getting started
 
 ### Build the app
 
-Go into the project directory and run the command:
+Go into `./app` and run the command:
 
 ``` shell
 $ docker-compose up --build
@@ -114,7 +153,7 @@ Open `http://localhost:80` and enjoy!
 
 ### Download the model
 To use the app, you must download the model from
-([here](https://syncandshare.lrz.de/getlink/fiEpYXwqbwsQjuBHaJ1ZRNnF/model-lgbm-gbdt-600-no-ids.txt)) and save it in the following directory app/energApp/models.
+([here](https://syncandshare.lrz.de/getlink/fiEpYXwqbwsQjuBHaJ1ZRNnF/model-lgbm-gbdt-600-no-ids.txt)) and save it as `./app/model/model.txt`.
 
 Project Organization
 ------------
@@ -122,6 +161,7 @@ Project Organization
     ├── LICENSE
     ├── Makefile           <- Makefile with commands like `make data` or `make train`
     ├── README.md          <- The top-level README for developers using this project.
+    ├── app                <- The top-level directory for all files regarding the web app.
     ├── data
     │   ├── external       <- Data from third party sources.
     │   ├── interim        <- Intermediate data that has been transformed.
@@ -135,7 +175,7 @@ Project Organization
     ├── notebooks          <- Jupyter notebooks. Naming convention is a number (for ordering),
     │                         the creator's initials, and a short `-` delimited description, e.g.
     │                         `1.0-jqp-initial-data-exploration`.
-    │    │
+    │    
     ├── reports            <- Generated analysis as HTML, PDF, LaTeX, etc.
     │   └── figures        <- Generated graphics and figures to be used in reporting
     │
