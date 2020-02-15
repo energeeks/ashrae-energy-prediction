@@ -3,49 +3,119 @@
 
 {% block body %}
 
-<div class="container">
-    <div class="row" style="margin: 1em;">
-     <div class="col-sm-1"></div>
-     <div class="col-sm-10">
-         <div class-="example-tile"><img src="../static/images/example-tile.jpg" class="w3-round" alt="trend"></div>
-     </div>
-     <div class="col-sm-1"></div>
-    </div>
-    <div class="row" style="margin-top: 1em;">
-        <div class="col-sm-1"></div>
-        <div class="col-sm-5">
-            <div class-="weather-tile">
-                <div id="openweathermap-widget-15"></div>
-<script>window.myWidgetParam ? window.myWidgetParam : window.myWidgetParam = [];  window.myWidgetParam.push({id: 15,cityid: '2867714',appid: '',units: 'metric',containerid: 'openweathermap-widget-15',  });  (function() {var script = document.createElement('script');script.async = true;script.charset = "utf-8";script.src = "//openweathermap.org/themes/openweathermap/assets/vendor/owm/js/weather-widget-generator.js";var s = document.getElementsByTagName('script')[0];s.parentNode.insertBefore(script, s);  })();</script>
-            </div>
-        </div>
-        <div class="col-sm-4"> <a href={{url_for('main_bp.faq_page')}}>
-          <div class-="FAQ-tile"><img src="../static/images/faq-tile.jpg" class="w3-round" alt="faq"></div>
-            </a></div>
-         <div class="col-sm-1"></div>
-    </div>
-    <div class="row" style="margin-top: 2em;">
-         <div class="col-sm-1"></div>
-        <div class="col-sm-5">
-          <div class-="team-tile"><img src="Adrian_avatar.png" alt="Avatar" class="w3-left w3-circle">
-  <p>Adrian Uffmann</p>
-              <img src="Dario_avatar.png" alt="Avatar" class="w3-left w3-circle">
-  <p>Dario Lepke</p>
-              <img src="Erjona_avatar.png" alt="Avatar" class="w3-left w3-circle">
-  <p>Erjona Dervishi</p>
-              <img src="Tobias_avatar.png" alt="Avatar" class="w3-left w3-circle">
-  <p>Tobias Weber</p>
-        </div>
+<style>
+.avatar {
+  vertical-align: middle;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+}
+img.resize {
+  max-width:95%;
+  max-height:95%;
+}
+</style>
 
-        <div class="col-sm-5">
-            <a href="https://github.com/energeeks/ashrae-energy-prediction">
-            <div class-="git-tile"><img src="../static/images/git-tile.jpg" class="w3-round" alt="git"></div>
+<style>
+* {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+/* Float four columns side by side */
+.column {
+  float: left;
+  width: 25%;
+  padding: 0 10px;
+}
+
+/* Remove extra left and right margins, due to padding */
+.row {margin: 0 -5px;}
+
+/* Clear floats after the columns */
+.row:after {
+  content: "";
+  display: table;
+  clear: both;
+}
+
+/* Responsive columns */
+@media screen and (max-width: 600px) {
+  .column {
+    width: 100%;
+    display: block;
+    margin-bottom: 20px;
+  }
+}
+
+/* Style the counter cards */
+.card {
+  box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
+  padding: 16px;
+  text-align: center;
+  background-color: transparent;
+  min-height: 235px;
+  max-height: 235px;
+}
+</style>
+<div class="row" style="margin: 3em;">
+    <div class="weather-tile">
+
+      <div id="openweathermap-widget-12"></div>
+<script>window.myWidgetParam ? window.myWidgetParam : window.myWidgetParam = [];  window.myWidgetParam.push({id: 12,cityid: '2867714',appid: '',units: 'metric',containerid: 'openweathermap-widget-12',  });  (function() {var script = document.createElement('script');script.async = true;script.charset = "utf-8";script.src = "//openweathermap.org/themes/openweathermap/assets/vendor/owm/js/weather-widget-generator.js";var s = document.getElementsByTagName('script')[0];s.parentNode.insertBefore(script, s);  })();</script>
+
+    </div>
+     <div class="col-sm-9">
+         <div class-="example-tile"><img src="../static/images/example-tile_no_background.png" class="w3-round" alt="trend" style="width: 100%"></div>
+     </div>
+    </div>
+
+
+<div class="row" style="margin: 1em;">
+    <div class="col-sm-1"></div>
+
+    <div class="column">
+      <a href={{url_for('main_bp.faq_page')}}>
+    <div class="card">
+      <img src="../static/images/faq-tile.png" class="resize" alt="faq"></div>
             </a>
-        </div>
-        <div class="col-sm-1"></div>
+    </div>
+
+
+   <div class="column">
+      <a href="https://github.com/energeeks/ashrae-energy-prediction">
+    <div class="card">
+      <img src="../static/images/git-tile.png" class="resize" alt="faq"></div>
+            </a>
+    </div>
+
+    <div class="column">
+    <div class="card">
+        <div class="container">
+    <div class="row">
+        <div class="col-sm-3"><img src="../static/images/Adrian_avatar.png" alt="Avatar" class="avatar"></div>
+        <div class="col-sm-9"><p style="padding-top: 1em;">Adrian Uffmann</p></div>
+    </div>
+    <div class="row">
+        <div class="col-sm-3"><img src="../static/images/Dario_avatar.png" alt="Avatar" class="avatar"></div>
+        <div class="col-sm-9"><p style="padding-top: 1em;">Dario Lepke</p></div>
+    </div>
+    <div class="row">
+        <div class="col-sm-3"><img src="../static/images/Erjona_avatar.png" alt="Avatar" class="avatar"></div>
+        <div class="col-sm-9"><p style="padding-top: 1em;">Erjona Dervishi</p></div>
+    </div>
+    <div class="row">
+        <div class="col-sm-3"><img src="../static/images/Tobias_avatar.png" alt="Avatar" class="avatar"></div>
+        <div class="col-sm-9"><p style="padding-top: 1em;">Tobias Weber</p></div>
     </div>
 </div>
 
-
+    </div>
+  </div>
+  </div>
+</div>
 
 {% endblock %}
