@@ -14,8 +14,8 @@ prediction = None
 
 
 @main_bp.route('/')
-def landing():
-    return render_template('landing.html')
+def index():
+    return render_template('index.html')
 
 
 @main_bp.route('/predictions')

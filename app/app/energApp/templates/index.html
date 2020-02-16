@@ -1,7 +1,107 @@
 {% extends "layout.html" %}
-
 {% block body %}
-  <div class="col-lg-12 text-center">
-    <h1>Hello</h1>
+<div class="container text-center" style="margin: 20px">
+    <div class="col-lg-12">
+        <p><strong><i>Get your energy forecast today!</strong></i></p>
+        <p>
+            The EnergApp predicts the energy consumption of <i>your</i> buildings for the coming week!
+            Don't get surprised anymore and start your adventure by <a href={{url_for('auth_bp.signup_page')}}>registering</a>
+            or <a href={{url_for('auth_bp.login_page')}}>logging in</a>. Then add your <a href={{url_for('main_bp.buildings_page')}}>buildings</a> and
+            enjoy your <a href={{url_for('main_bp.predictions_page')}}>predictions</a>.
+        </p>
+    </div>
+</div>
+<hr>
+<div class="container text-center" style="margin: 20px">
+  <div class="row">
+    <div class="col-sm-4">
+        <div class="col-sm-12 card text-center">
+            <a href={{url_for('main_bp.faq_page')}}>
+                <img src="{{ url_for('static', filename='images/faq-tile.png') }}" class="resize" alt="faq">
+            </a>
+            <hr>
+            <p><strong>Check the FAQs!</strong></p>
+        </div>
+    </div>
+    <div class="col-sm-4">
+        <div class="col-sm-12 card text-center">
+          <a href="https://github.com/energeeks/ashrae-energy-prediction">
+              <img src="{{ url_for('static', filename='images/git-tile.png') }}" class="resize" alt="faq">
+          </a>
+            <hr>
+            <p><strong>Check EnerGeeks at Github!</strong></p>
+        </div>
+    </div>
+    <div class="col-sm-4">
+        <div class="col-sm-12 card text-center">
+            <a href="">
+                <img src="{{ url_for('static', filename='images/discord_logo.png') }}" class="resize" alt="faq">
+            </a>
+            <hr>
+            <p><strong>Get in touch!</strong></p>
+        </div>
+    </div>
   </div>
+</div>
+<hr>
+<div class="container text-center" style="margin: 20px">
+    <div class="row" style="margin: 1em;">
+        <div class="col-sm-12 card" style="max-width: 600px">
+            <table class ="table">
+                <thead>
+                <p><i>A Project by:</i></p>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td style="width: 40px; vertical-align: middle">
+                            <img src="{{ url_for('static', filename='images/Adrian_avatar.png') }}" alt="Avatar" class="avatar">
+                        </td>
+                        <td style="width: 82px; vertical-align: middle;text-align:left">
+                            <p style="text-align: left;">Adrian</p>
+                        </td>
+                        <td style="width: 40px; vertical-align: middle">
+                            <img src="{{ url_for('static', filename='images/Dario_avatar.png') }}" alt="Avatar" class="avatar">
+                        </td>
+                        <td style="width: 82px; vertical-align: middle">
+                            <p style="text-align: left;">Dario</p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="width: 40px; vertical-align: middle">
+                            <img src="{{ url_for('static', filename='images/Erjona_avatar.png') }}" alt="Avatar" class="avatar">
+                        </td>
+                        <td style="width: 82px; vertical-align: middle;text-align:left">
+                            <p style="text-align: left;">Erjona</p>
+                        </td>
+                        <td style="width: 40px; vertical-align: middle">
+                            <img src="{{ url_for('static', filename='images/Tobias_avatar.png') }}" alt="Avatar" class="avatar">
+                        </td>
+                        <td style="width: 82px; vertical-align: middle">
+                            <p style="text-align: left;">Tobias</p>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+<hr>
+<div class="col-lg-12 text-center">
+      <div id="openweathermap-widget-22" style="margin: 0 auto;display: table"></div>
+        <script>
+            window.myWidgetParam ? window.myWidgetParam : window.myWidgetParam = [];
+            window.myWidgetParam.push({id: 22,
+                cityid: '2867714',
+                appid: '{{ config.API_KEY }}',
+                units: 'metric',
+                containerid: 'openweathermap-widget-22'});
+            (function() {
+                var script = document.createElement('script');
+                script.async = true;
+                script.charset = "utf-8";
+                script.src = "//openweathermap.org/themes/openweathermap/assets/vendor/owm/js/weather-widget-generator.js";
+                var s = document.getElementsByTagName('script')[0];
+                s.parentNode.insertBefore(script, s);  })();
+        </script>
+</div>
 {% endblock %}
