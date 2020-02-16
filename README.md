@@ -155,6 +155,15 @@ Open `http://localhost:80` and enjoy!
 To use the app, you must download the model from
 ([here](https://syncandshare.lrz.de/getlink/fiEpYXwqbwsQjuBHaJ1ZRNnF/model-lgbm-gbdt-600-no-ids.txt)) and save it as `./app/model/model.txt`.
 
+### Optional: Build the pre-processing package
+
+If you have changed the pre-processing code, go to the project root run:
+
+``` shell
+$ python setup.py bdist_wheel
+$ cp dist/energeek-0.1.0-py3-none-any.whl app/app/packages/
+```
+
 Project Organization
 ------------
 
