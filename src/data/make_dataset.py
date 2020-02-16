@@ -9,6 +9,7 @@ import pandas as pd
 import pytz
 import yaml
 from dotenv import find_dotenv, load_dotenv
+from sklearn.experimental import enable_iterative_imputer
 from sklearn.impute import IterativeImputer
 from sklearn.preprocessing import StandardScaler
 

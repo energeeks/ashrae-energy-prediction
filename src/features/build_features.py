@@ -27,64 +27,7 @@ def main(input_filepath, output_filepath):
     with timer("Loading interim data"):
         train_df, test_df = load_interim_data(input_filepath)
 
-    with timer("Encoding categorical features"):
-        train_df = encode_categorical_data(train_df)
-        test_df = encode_categorical_data(test_df)
-
-    with timer("Encoding timestamp features"):
-        train_df = encode_timestamp(train_df, circular=cfg["circular_timestamp_encoding"])
-        test_df = encode_timestamp(test_df, circular=cfg["circular_timestamp_encoding"])
-
-    with timer("Create area per floor feature"):
-        train_df["area_per_floor"] = train_df["square_feet"] / train_df["floor_count"]
-        test_df["area_per_floor"] = test_df["square_feet"] / test_df["floor_count"]
-
-    if cfg["log_transform_square_feet"]:
-        with timer("Taking the log of selected features"):
-            train_df["square_feet"] = np.log(train_df["square_feet"])
-            test_df["square_feet"] = np.log(test_df["square_feet"])
-
-    if cfg["log_transform_area_per_floor"]:
-        with timer("Taking the log of area per floor"):
-            train_df["area_per_floor"] = np.log(train_df["area_per_floor"])
-            test_df["area_per_floor"] = np.log(test_df["area_per_floor"])
-
-    if cfg["label_square_feet_outlier"]:
-        with timer("Create outlier label for square feet"):
-            train_df["outlier_square_feet"] = label_outlier("square_feet", train_df)
-            test_df["outlier_square_feet"] = label_outlier("square_feet", test_df)
-
-    if cfg["label_area_per_floor_outlier"]:
-        with timer("Create outlier label for area per floor"):
-            train_df["outlier_area_per_floor"] = label_outlier("area_per_floor", train_df)
-            test_df["outlier_area_per_floor"] = label_outlier("area_per_floor", test_df)
-
-    with timer("Calculating age of buildings"):
-        train_df = calculate_age_of_building(train_df)
-        test_df = calculate_age_of_building(test_df)
-
-    if cfg["encode_wind_direction"]:
-        with timer("Encoding wind_direction features"):
-            train_df = encode_wind_direction(train_df)
-            test_df = encode_wind_direction(test_df)
-
-    with timer("Calculate relative humidity"):
-        train_df = calculate_relative_humidity(train_df)
-        test_df = calculate_relative_humidity(test_df)
-
-    if cfg["include_feels_like"]:
-        with timer("Create feels_like_temp"):
-            train_df = create_feels_like(train_df)
-            test_df = create_feels_like(test_df)
-
-    if cfg["fill_na_with_zero"]:
-        train_df.fillna(0)
-        test_df.fillna(0)
-
-    if cfg["add_lag_features"]:
-        with timer("Adding Lag Features"):
-            train_df = add_lag_features(train_df, cfg["lag_columns"], cfg["lag_windows"])
-            test_df = add_lag_features(test_df, cfg["lag_columns"], cfg["lag_windows"])
+    train_df, test_df = build_features(train_df, test_df, cfg=cfg)
 
     if cfg["exclude_faulty_rows"]:
         with timer("Exclude faulty data and outliers"):
@@ -116,6 +59,56 @@ def load_interim_data(input_filepath):
     train_df = pd.read_pickle(input_filepath + "/train_data.pkl")
     test_df = pd.read_pickle(input_filepath + "/test_data.pkl")
     return train_df, test_df
+
+
+def build_features(*dfs, cfg):
+    with timer("Encoding categorical features"):
+        dfs = [encode_categorical_data(df) for df in dfs]
+
+    with timer("Encoding timestamp features"):
+        dfs = [encode_timestamp(df, circular=cfg["circular_timestamp_encoding"]) for df in dfs]
+
+    with timer("Create area per floor feature"):
+        dfs = [calculate_area_per_floor(df) for df in dfs]
+
+    if cfg["log_transform_square_feet"]:
+        with timer("Taking the log of selected features"):
+            dfs = [calculate_square_feet_log(df) for df in dfs]
+
+    if cfg["log_transform_area_per_floor"]:
+        with timer("Taking the log of area per floor"):
+            dfs = [calculate_area_per_floor_log(df) for df in dfs]
+
+    if cfg["label_square_feet_outlier"]:
+        with timer("Create outlier label for square feet"):
+            dfs = [label_square_feet_outlier(df) for df in dfs]
+
+    if cfg["label_area_per_floor_outlier"]:
+        with timer("Create outlier label for area per floor"):
+            dfs = [label_area_per_floor_outlier(df) for df in dfs]
+
+    with timer("Calculating age of buildings"):
+        dfs = [calculate_age_of_building(df) for df in dfs]
+
+    if cfg["encode_wind_direction"]:
+        with timer("Encoding wind_direction features"):
+            dfs = [encode_wind_direction(df) for df in dfs]
+
+    with timer("Calculate relative humidity"):
+        dfs = [calculate_relative_humidity(df) for df in dfs]
+
+    if cfg["include_feels_like"]:
+        with timer("Create feels_like_temp"):
+            dfs = [create_feels_like(df) for df in dfs]
+
+    if cfg["fill_na_with_zero"]:
+        dfs = [df.fillna(0) for df in dfs]
+
+    if cfg["add_lag_features"]:
+        with timer("Adding Lag Features"):
+            dfs = [add_lag_features(df, cfg["lag_columns"], cfg["lag_windows"]) for df in dfs]
+
+    return dfs
 
 
 def encode_categorical_data(data_frame):
@@ -151,6 +144,31 @@ def encode_timestamp(data_frame, circular=False):
         data_frame["weekday"] = pd.Categorical(timestamp.dt.dayofweek)
         data_frame["month"] = pd.Categorical(timestamp.dt.month)
     return data_frame
+
+
+def calculate_area_per_floor(df):
+    df["area_per_floor"] = df["square_feet"] / df["floor_count"]
+    return df
+
+
+def calculate_square_feet_log(df):
+    df["square_feet"] = np.log(df["square_feet"])
+    return df
+
+
+def calculate_area_per_floor_log(df):
+    df["area_per_floor"] = np.log(df["area_per_floor"])
+    return df
+
+
+def label_square_feet_outlier(df):
+    df["outlier_square_feet"] = label_outlier("square_feet", df)
+    return df
+
+
+def label_area_per_floor_outlier(df):
+    df["outlier_area_per_floor"] = label_outlier("area_per_floor", df)
+    return df
 
 
 def label_outlier(variable, df):
