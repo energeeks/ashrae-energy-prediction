@@ -1,8 +1,11 @@
+import math
 import os
-import yaml
+
 import click
 import numpy as np
 import pandas as pd
+import yaml
+from meteocalc import feels_like
 from sklearn.preprocessing import LabelEncoder
 
 from src.timer import timer
@@ -31,7 +34,7 @@ def main(input_filepath, output_filepath):
     with timer("Encoding timestamp features"):
         train_df = encode_timestamp(train_df, circular=cfg["circular_timestamp_encoding"])
         test_df = encode_timestamp(test_df, circular=cfg["circular_timestamp_encoding"])
-    
+
     with timer("Create area per floor feature"):
         train_df["area_per_floor"] = train_df["square_feet"] / train_df["floor_count"]
         test_df["area_per_floor"] = test_df["square_feet"] / test_df["floor_count"]
@@ -40,17 +43,17 @@ def main(input_filepath, output_filepath):
         with timer("Taking the log of selected features"):
             train_df["square_feet"] = np.log(train_df["square_feet"])
             test_df["square_feet"] = np.log(test_df["square_feet"])
-    
+
     if cfg["log_transform_area_per_floor"]:
         with timer("Taking the log of area per floor"):
             train_df["area_per_floor"] = np.log(train_df["area_per_floor"])
             test_df["area_per_floor"] = np.log(test_df["area_per_floor"])
-    
+
     if cfg["label_square_feet_outlier"]:
         with timer("Create outlier label for square feet"):
             train_df["outlier_square_feet"] = label_outlier("square_feet", train_df)
             test_df["outlier_square_feet"] = label_outlier("square_feet", test_df)
-    
+
     if cfg["label_area_per_floor_outlier"]:
         with timer("Create outlier label for area per floor"):
             train_df["outlier_area_per_floor"] = label_outlier("area_per_floor", train_df)
@@ -64,6 +67,15 @@ def main(input_filepath, output_filepath):
         with timer("Encoding wind_direction features"):
             train_df = encode_wind_direction(train_df)
             test_df = encode_wind_direction(test_df)
+
+    with timer("Calculate relative humidity"):
+        train_df = calculate_relative_humidity(train_df)
+        test_df = calculate_relative_humidity(test_df)
+
+    if cfg["include_feels_like"]:
+        with timer("Create feels_like_temp"):
+            train_df = create_feels_like(train_df)
+            test_df = create_feels_like(test_df)
 
     if cfg["fill_na_with_zero"]:
         train_df.fillna(0)
@@ -151,8 +163,8 @@ def label_outlier(variable, df):
     var = df[variable]
     mn = np.mean(var)
     std = np.std(var)
-    lower = mn - 2.5*std
-    upper = mn + 2.5*std
+    lower = mn - 2.5 * std
+    upper = mn + 2.5 * std
     is_outlier = (var < lower) | (var > upper)
     return is_outlier
 
@@ -199,6 +211,51 @@ def encode_wind_direction(data_frame):
     data_frame.loc[data_frame["wind_speed"].isna(), ["wind_direction_sin", "wind_direction_cos"]] = 0
     data_frame.loc[data_frame["wind_speed"] == 0, ["wind_direction_sin", "wind_direction_cos"]] = 0
     return data_frame
+
+
+def calculate_relative_humidity(df):
+    df["relative_humidity"] = df.apply(
+        lambda row: calculate_row_relative_humidity(row['air_temperature'], row['dew_temperature']), axis=1)
+    return df
+
+
+def calculate_row_relative_humidity(air_temperature, dew_temperature):
+    """
+    Computes the relative humidity from air temperature and dew point.
+    :param air_temperature: the dry air temperature
+    :param dew_temperature: the dew point
+    :return: the relative humidity
+    """
+    positive = {'b': 17.368, 'c': 238.88}
+    negative = {'b': 17.966, 'c': 247.15}
+    const = positive if air_temperature > 0 else negative
+    pa = math.exp(dew_temperature * const['b'] / (const['c'] + dew_temperature))
+    rel_humidity = pa * 100. * 1 / math.exp(const['b'] * air_temperature / (const['c'] + air_temperature))
+    return rel_humidity
+
+
+def create_feels_like(df):
+    """
+    Creates a feels-like temperature feature for the dataframe.
+    :param df: weather data frame.
+    :return: Dataframe with added feature
+    """
+    df["feels_like_temp"] = df.apply(lambda x: feels_like_custom(x), axis=1)
+    return df
+
+
+def feels_like_custom(row):
+    """
+    Computes feels like feature for an entry from the dataframe
+    :param row: entry from the weather dataframe
+    :return: feels like value for the entry
+    """
+    temperature = row["air_temperature"] * 9 / 5. + 32
+    wind_speed = row["wind_speed"]
+    humidity = row["relative_humidity"]
+    fl = feels_like(temperature, wind_speed, humidity)
+    out = fl.c
+    return out
 
 
 def add_leaked_data(train_df, test_df):

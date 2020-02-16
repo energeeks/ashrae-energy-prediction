@@ -6,14 +6,11 @@ from pathlib import Path
 import click
 import numpy as np
 import pandas as pd
-import math
-from meteocalc import feels_like, Temp, dew_point, wind_chill, heat_index
 import pytz
-from dotenv import find_dotenv, load_dotenv
 import yaml
-from sklearn.preprocessing import StandardScaler
-from sklearn.experimental import enable_iterative_imputer
+from dotenv import find_dotenv, load_dotenv
 from sklearn.impute import IterativeImputer
+from sklearn.preprocessing import StandardScaler
 
 from src.timer import timer
 
@@ -45,17 +42,12 @@ def main(data_dir, output_dir):
     with timer("Merging main and building"):
         train_df = train_df.merge(building_df, on="building_id", how="left")
         test_df = test_df.merge(building_df, on="building_id", how="left")
-    
-    if cfg["include_feels_like"]:
-        with timer("Create feels_like_temp"):
-            weather_train_df = create_feels_like(weather_train_df)
-            weather_test_df = create_feels_like(weather_test_df)
-        
+
     if cfg["impute_weather_data"]:
         with timer("Impute missing weather data"):
             weather_train_df = impute_weather_data(weather_train_df)
             weather_test_df = impute_weather_data(weather_test_df)
-            
+
     with timer("Merging weather and site"):
         weather_train_df = weather_train_df.merge(site_df, on="site_id", how="left")
         weather_test_df = weather_test_df.merge(site_df, on="site_id", how="left")
@@ -147,50 +139,6 @@ def load_site_csv(csv):
     return pd.read_csv(csv, delimiter=";", dtype=dtype, parse_dates=parse_dates, converters=converters)
 
 
-def create_feels_like(df):
-    """
-    Creates a feels-like temperature feature for the dataframe.
-    :param df: weather data frame.
-    :return: Dataframe with added feature
-    """
-    df["relative_humidity"] = df.apply(lambda x: compute_humidity(x), axis = 1)
-    df["air_temp_f"] = df["air_temperature"] * 9 / 5. + 32
-    df["feels_like_temp"] = df.apply(lambda x : feels_like_custom(x), axis = 1)
-    return df
-
-
-def compute_humidity(row):
-    """
-    Computes humidity of an entry from the dataframe.
-    :param row: entry from the weather dataframe
-    :return: relative humidity for the entry
-    """
-    CONSTANTS = dict(
-        positive=dict(b=17.368, c=238.88),
-        negative=dict(b=17.966, c=247.15),
-    )
-    T = row["air_temperature"]
-    const = CONSTANTS['positive'] if T > 0 else CONSTANTS['negative']
-    dp = row["dew_temperature"]
-    pa = math.exp(dp * const['b'] / (const['c'] + dp))
-    rel_humidity = pa * 100. * 1 / math.exp(const['b'] * T / (const['c'] + T))
-    return rel_humidity
-
-
-def feels_like_custom(row):
-    """
-    Computes feels like feature for an entry from the dataframe
-    :param row: entry from the weather dataframe
-    :return: feels like value for the entry
-    """
-    temperature = row["air_temp_f"]
-    wind_speed = row["wind_speed"]
-    humidity = row["relative_humidity"]
-    fl = feels_like(temperature, wind_speed, humidity)
-    out = fl.c
-    return out
-
-
 def split_column_types(column_types):
     """
     Provided a list of column_types the method will set fitting parameters
@@ -217,7 +165,7 @@ def split_column_types(column_types):
     converters = {k: v for k, v in column_types.items() if is_converter(v)}
     return dtype, parse_dates, converters
 
-  
+
 def impute_weather_data(data_frame):
     """
     Imputes missing data from the weather dataframe using iterative imputer
