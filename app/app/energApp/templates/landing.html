@@ -1,6 +1,4 @@
 {% extends "layout.html" %}
-{% import "bootstrap/wtf.html" as wtf %}
-
 {% block body %}
 
 <style>
@@ -63,27 +61,37 @@ body {
 </style>
 <div class="row" style="margin: 3em;">
     <div class="weather-tile">
-
       <div id="openweathermap-widget-12"></div>
-<script>window.myWidgetParam ? window.myWidgetParam : window.myWidgetParam = [];  window.myWidgetParam.push({id: 12,cityid: '2867714',appid: '',units: 'metric',containerid: 'openweathermap-widget-12',  });  (function() {var script = document.createElement('script');script.async = true;script.charset = "utf-8";script.src = "//openweathermap.org/themes/openweathermap/assets/vendor/owm/js/weather-widget-generator.js";var s = document.getElementsByTagName('script')[0];s.parentNode.insertBefore(script, s);  })();</script>
+        <script>
+            window.myWidgetParam ? window.myWidgetParam : window.myWidgetParam = [];
+            window.myWidgetParam.push({id: 12,cityid: '2867714',appid: '{{ config.API_KEY }}' ,units: 'metric',containerid: 'openweathermap-widget-12',  });
+            (function() {
+                var script = document.createElement('script');
+                script.async = true;
+                script.charset = "utf-8";
+                script.src = "//openweathermap.org/themes/openweathermap/assets/vendor/owm/js/weather-widget-generator.js";
+                var s = document.getElementsByTagName('script')[0];
+                s.parentNode.insertBefore(script, s);  })();
+        </script>
 
     </div>
      <div class="col-sm-9">
-         <div class-="example-tile"><img src="../static/images/example-tile_no_background.png" class="w3-round" alt="trend" style="width: 100%"></div>
+         <div class-="example-tile">
+             <img src="../static/images/example-tile_no_background.png" class="w3-round" alt="trend" style="width: 100%">
+         </div>
      </div>
     </div>
 
 
 <div class="row" style="margin: 1em;">
     <div class="col-sm-1"></div>
-
     <div class="column">
       <a href={{url_for('main_bp.faq_page')}}>
-    <div class="card">
-      <img src="../static/images/faq-tile.png" class="resize" alt="faq"></div>
-            </a>
+        <div class="card">
+          <img src="../static/images/faq-tile.png" class="resize" alt="faq">
+        </div>
+      </a>
     </div>
-
 
    <div class="column">
       <a href="https://github.com/energeeks/ashrae-energy-prediction">

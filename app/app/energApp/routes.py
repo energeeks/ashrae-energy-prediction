@@ -14,15 +14,7 @@ prediction = None
 
 
 @main_bp.route('/')
-
-@login_required
 def landing():
-    global prediction
-    building_query = Building.query.filter_by(user_id=current_user.id)
-    buildings = pd.read_sql(building_query.statement, building_query.session.bind)
-    if len(buildings) > 0:
-        prediction = predict_energy_consumption(buildings)
-
     return render_template('landing.html')
 
 
