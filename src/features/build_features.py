@@ -115,12 +115,30 @@ def encode_categorical_data(data_frame):
     """
     Sets a fitting format for categorical data.
     """
-    # return pd.get_dummies(data_frame, columns=["meter", "primary_use"])
-    data_frame["primary_use"] = LabelEncoder().fit_transform(data_frame["primary_use"])
-    data_frame["primary_use"] = pd.Categorical(data_frame["primary_use"])
-    data_frame["building_id"] = pd.Categorical(data_frame["building_id"])
-    data_frame["site_id"] = pd.Categorical(data_frame["site_id"])
-    data_frame["meter"] = pd.Categorical(data_frame["meter"])
+    primary_use_label = {
+        'Education': 0,
+        'Entertainment/public assembly': 1,
+        'Food sales and service': 2,
+        'Healthcare': 3,
+        'Lodging/residential': 4,
+        'Manufacturing/industrial': 5,
+        'Office': 6,
+        'Other': 7,
+        'Parking': 8,
+        'Public services': 9,
+        'Religious worship': 10,
+        'Retail': 11,
+        'Services': 12,
+        'Technology/science': 13,
+        'Utility': 14,
+        'Warehouse/storage': 15
+    }
+    data_frame["primary_use"].replace(primary_use_label, inplace=True)
+
+    columns = ["site_id", "building_id", "meter", "primary_use"]
+    for column in columns:
+        if column in data_frame.columns:
+            data_frame[column] = pd.Categorical(data_frame[column])
     return data_frame
 
 
@@ -201,7 +219,7 @@ def add_lag_features(data_frame, cols, windows):
     for col in cols:
         for window in windows:
             data_frame["{}_{}_lag".format(col, window)] = data_frame \
-                .groupby(["site_id", "building_id", "meter"])[col] \
+                .groupby(["building_id", "meter"])[col] \
                 .rolling(window, center=False) \
                 .mean().reset_index(drop=True)
     return data_frame
