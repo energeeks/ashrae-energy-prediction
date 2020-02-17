@@ -1,8 +1,11 @@
+import math
 import os
-import yaml
+
 import click
 import numpy as np
 import pandas as pd
+import yaml
+from meteocalc import feels_like
 from sklearn.preprocessing import LabelEncoder
 
 from src.timer import timer
@@ -24,55 +27,7 @@ def main(input_filepath, output_filepath):
     with timer("Loading interim data"):
         train_df, test_df = load_interim_data(input_filepath)
 
-    with timer("Encoding categorical features"):
-        train_df = encode_categorical_data(train_df)
-        test_df = encode_categorical_data(test_df)
-
-    with timer("Encoding timestamp features"):
-        train_df = encode_timestamp(train_df, circular=cfg["circular_timestamp_encoding"])
-        test_df = encode_timestamp(test_df, circular=cfg["circular_timestamp_encoding"])
-    
-    with timer("Create area per floor feature"):
-        train_df["area_per_floor"] = train_df["square_feet"] / train_df["floor_count"]
-        test_df["area_per_floor"] = test_df["square_feet"] / test_df["floor_count"]
-
-    if cfg["log_transform_square_feet"]:
-        with timer("Taking the log of selected features"):
-            train_df["square_feet"] = np.log(train_df["square_feet"])
-            test_df["square_feet"] = np.log(test_df["square_feet"])
-    
-    if cfg["log_transform_area_per_floor"]:
-        with timer("Taking the log of area per floor"):
-            train_df["area_per_floor"] = np.log(train_df["area_per_floor"])
-            test_df["area_per_floor"] = np.log(test_df["area_per_floor"])
-    
-    if cfg["label_square_feet_outlier"]:
-        with timer("Create outlier label for square feet"):
-            train_df["outlier_square_feet"] = label_outlier("square_feet", train_df)
-            test_df["outlier_square_feet"] = label_outlier("square_feet", test_df)
-    
-    if cfg["label_area_per_floor_outlier"]:
-        with timer("Create outlier label for area per floor"):
-            train_df["outlier_area_per_floor"] = label_outlier("area_per_floor", train_df)
-            test_df["outlier_area_per_floor"] = label_outlier("area_per_floor", test_df)
-
-    with timer("Calculating age of buildings"):
-        train_df = calculate_age_of_building(train_df)
-        test_df = calculate_age_of_building(test_df)
-
-    if cfg["encode_wind_direction"]:
-        with timer("Encoding wind_direction features"):
-            train_df = encode_wind_direction(train_df)
-            test_df = encode_wind_direction(test_df)
-
-    if cfg["fill_na_with_zero"]:
-        train_df.fillna(0)
-        test_df.fillna(0)
-
-    if cfg["add_lag_features"]:
-        with timer("Adding Lag Features"):
-            train_df = add_lag_features(train_df, cfg["lag_columns"], cfg["lag_windows"])
-            test_df = add_lag_features(test_df, cfg["lag_columns"], cfg["lag_windows"])
+    train_df, test_df = build_features(train_df, test_df, cfg=cfg)
 
     if cfg["exclude_faulty_rows"]:
         with timer("Exclude faulty data and outliers"):
@@ -106,16 +61,84 @@ def load_interim_data(input_filepath):
     return train_df, test_df
 
 
+def build_features(*dfs, cfg):
+    with timer("Encoding categorical features"):
+        dfs = [encode_categorical_data(df) for df in dfs]
+
+    with timer("Encoding timestamp features"):
+        dfs = [encode_timestamp(df, circular=cfg["circular_timestamp_encoding"]) for df in dfs]
+
+    with timer("Create area per floor feature"):
+        dfs = [calculate_area_per_floor(df) for df in dfs]
+
+    if cfg["log_transform_square_feet"]:
+        with timer("Taking the log of selected features"):
+            dfs = [calculate_square_feet_log(df) for df in dfs]
+
+    if cfg["log_transform_area_per_floor"]:
+        with timer("Taking the log of area per floor"):
+            dfs = [calculate_area_per_floor_log(df) for df in dfs]
+
+    if cfg["label_square_feet_outlier"]:
+        with timer("Create outlier label for square feet"):
+            dfs = [label_square_feet_outlier(df) for df in dfs]
+
+    if cfg["label_area_per_floor_outlier"]:
+        with timer("Create outlier label for area per floor"):
+            dfs = [label_area_per_floor_outlier(df) for df in dfs]
+
+    with timer("Calculating age of buildings"):
+        dfs = [calculate_age_of_building(df) for df in dfs]
+
+    if cfg["encode_wind_direction"]:
+        with timer("Encoding wind_direction features"):
+            dfs = [encode_wind_direction(df) for df in dfs]
+
+    with timer("Calculate relative humidity"):
+        dfs = [calculate_relative_humidity(df) for df in dfs]
+
+    if cfg["include_feels_like"]:
+        with timer("Create feels_like_temp"):
+            dfs = [create_feels_like(df) for df in dfs]
+
+    if cfg["fill_na_with_zero"]:
+        dfs = [df.fillna(0) for df in dfs]
+
+    if cfg["add_lag_features"]:
+        with timer("Adding Lag Features"):
+            dfs = [add_lag_features(df, cfg["lag_columns"], cfg["lag_windows"]) for df in dfs]
+
+    return dfs
+
+
 def encode_categorical_data(data_frame):
     """
     Sets a fitting format for categorical data.
     """
-    # return pd.get_dummies(data_frame, columns=["meter", "primary_use"])
-    data_frame["primary_use"] = LabelEncoder().fit_transform(data_frame["primary_use"])
-    data_frame["primary_use"] = pd.Categorical(data_frame["primary_use"])
-    data_frame["building_id"] = pd.Categorical(data_frame["building_id"])
-    data_frame["site_id"] = pd.Categorical(data_frame["site_id"])
-    data_frame["meter"] = pd.Categorical(data_frame["meter"])
+    primary_use_label = {
+        'Education': 0,
+        'Entertainment/public assembly': 1,
+        'Food sales and service': 2,
+        'Healthcare': 3,
+        'Lodging/residential': 4,
+        'Manufacturing/industrial': 5,
+        'Office': 6,
+        'Other': 7,
+        'Parking': 8,
+        'Public services': 9,
+        'Religious worship': 10,
+        'Retail': 11,
+        'Services': 12,
+        'Technology/science': 13,
+        'Utility': 14,
+        'Warehouse/storage': 15
+    }
+    data_frame["primary_use"].replace(primary_use_label, inplace=True)
+
+    columns = ["site_id", "building_id", "meter", "primary_use"]
+    for column in columns:
+        if column in data_frame.columns:
+            data_frame[column] = pd.Categorical(data_frame[column])
     return data_frame
 
 
@@ -141,6 +164,31 @@ def encode_timestamp(data_frame, circular=False):
     return data_frame
 
 
+def calculate_area_per_floor(df):
+    df["area_per_floor"] = df["square_feet"] / df["floor_count"]
+    return df
+
+
+def calculate_square_feet_log(df):
+    df["square_feet"] = np.log(df["square_feet"])
+    return df
+
+
+def calculate_area_per_floor_log(df):
+    df["area_per_floor"] = np.log(df["area_per_floor"])
+    return df
+
+
+def label_square_feet_outlier(df):
+    df["outlier_square_feet"] = label_outlier("square_feet", df)
+    return df
+
+
+def label_area_per_floor_outlier(df):
+    df["outlier_area_per_floor"] = label_outlier("area_per_floor", df)
+    return df
+
+
 def label_outlier(variable, df):
     """
     Flags outliers contained in the dataframe
@@ -151,8 +199,8 @@ def label_outlier(variable, df):
     var = df[variable]
     mn = np.mean(var)
     std = np.std(var)
-    lower = mn - 2.5*std
-    upper = mn + 2.5*std
+    lower = mn - 2.5 * std
+    upper = mn + 2.5 * std
     is_outlier = (var < lower) | (var > upper)
     return is_outlier
 
@@ -171,7 +219,7 @@ def add_lag_features(data_frame, cols, windows):
     for col in cols:
         for window in windows:
             data_frame["{}_{}_lag".format(col, window)] = data_frame \
-                .groupby(["site_id", "building_id", "meter"])[col] \
+                .groupby(["building_id", "meter"])[col] \
                 .rolling(window, center=False) \
                 .mean().reset_index(drop=True)
     return data_frame
@@ -199,6 +247,51 @@ def encode_wind_direction(data_frame):
     data_frame.loc[data_frame["wind_speed"].isna(), ["wind_direction_sin", "wind_direction_cos"]] = 0
     data_frame.loc[data_frame["wind_speed"] == 0, ["wind_direction_sin", "wind_direction_cos"]] = 0
     return data_frame
+
+
+def calculate_relative_humidity(df):
+    df["relative_humidity"] = df.apply(
+        lambda row: calculate_row_relative_humidity(row['air_temperature'], row['dew_temperature']), axis=1)
+    return df
+
+
+def calculate_row_relative_humidity(air_temperature, dew_temperature):
+    """
+    Computes the relative humidity from air temperature and dew point.
+    :param air_temperature: the dry air temperature
+    :param dew_temperature: the dew point
+    :return: the relative humidity
+    """
+    positive = {'b': 17.368, 'c': 238.88}
+    negative = {'b': 17.966, 'c': 247.15}
+    const = positive if air_temperature > 0 else negative
+    pa = math.exp(dew_temperature * const['b'] / (const['c'] + dew_temperature))
+    rel_humidity = pa * 100. * 1 / math.exp(const['b'] * air_temperature / (const['c'] + air_temperature))
+    return rel_humidity
+
+
+def create_feels_like(df):
+    """
+    Creates a feels-like temperature feature for the dataframe.
+    :param df: weather data frame.
+    :return: Dataframe with added feature
+    """
+    df["feels_like_temp"] = df.apply(lambda x: feels_like_custom(x), axis=1)
+    return df
+
+
+def feels_like_custom(row):
+    """
+    Computes feels like feature for an entry from the dataframe
+    :param row: entry from the weather dataframe
+    :return: feels like value for the entry
+    """
+    temperature = row["air_temperature"] * 9 / 5. + 32
+    wind_speed = row["wind_speed"]
+    humidity = row["relative_humidity"]
+    fl = feels_like(temperature, wind_speed, humidity)
+    out = fl.c
+    return out
 
 
 def add_leaked_data(train_df, test_df):

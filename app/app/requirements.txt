@@ -1,0 +1,16 @@
+flask-sqlalchemy
+psycopg2
+flask-login
+flask-bootstrap
+flask-wtf
+wtforms
+flask-admin
+requests
+requests-cache
+pandas
+lightgbm
+plotly
+meteocalc
+pyyaml
+
+packages/energeek-0.1.0-py3-none-any.whl
