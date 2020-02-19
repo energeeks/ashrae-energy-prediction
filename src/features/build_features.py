@@ -1,12 +1,11 @@
-import math
 import os
 
 import click
+import math
 import numpy as np
 import pandas as pd
 import yaml
 from meteocalc import feels_like
-from sklearn.preprocessing import LabelEncoder
 
 from src.timer import timer
 
@@ -99,7 +98,7 @@ def build_features(*dfs, cfg):
 
     if cfg["include_feels_like"]:
         with timer("Create feels_like_temp"):
-            dfs = [create_feels_like(df) for df in dfs]
+            dfs = [calculate_feels_like_temp(df) for df in dfs]
 
     if cfg["fill_na_with_zero"]:
         dfs = [df.fillna(0) for df in dfs]
@@ -271,26 +270,29 @@ def calculate_row_relative_humidity(air_temperature, dew_temperature):
     return rel_humidity
 
 
-def create_feels_like(df):
+def calculate_feels_like_temp(df):
     """
     Creates a feels-like temperature feature for the dataframe.
     :param df: weather data frame.
     :return: Dataframe with added feature
     """
-    df["feels_like_temp"] = df.apply(lambda x: feels_like_custom(x), axis=1)
-    return df
+    subset = df[["air_temperature", "wind_speed", "relative_humidity"]].drop_duplicates()
+    subset["feels_like_temp"] = subset.apply(
+        lambda row: calculate_row_feels_like_temp(row["air_temperature"], row["wind_speed"], row["relative_humidity"]),
+        axis=1)
+    return df.merge(subset, on=["air_temperature", "wind_speed", "relative_humidity"])
 
 
-def feels_like_custom(row):
+def calculate_row_feels_like_temp(air_temperature, wind_speed, relative_humidity):
     """
     Computes feels like feature for an entry from the dataframe
-    :param row: entry from the weather dataframe
+    :param air_temperature: air temperature in celsius
+    :param wind_speed: wind speed
+    :param relative_humidity: relative humidity
     :return: feels like value for the entry
     """
-    temperature = row["air_temperature"] * 9 / 5. + 32
-    wind_speed = row["wind_speed"]
-    humidity = row["relative_humidity"]
-    fl = feels_like(temperature, wind_speed, humidity)
+    air_temperature_fahrenheit = air_temperature * 9 / 5 + 32
+    fl = feels_like(air_temperature_fahrenheit, wind_speed, relative_humidity)
     out = fl.c
     return out
 
