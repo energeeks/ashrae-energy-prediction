@@ -6,6 +6,7 @@ import lightgbm as lgb
 import numpy as np
 import pandas as pd
 from sklearn.model_selection import KFold
+from sklearn.model_selection import GroupKFold
 
 from src.timer import timer
 
@@ -38,6 +39,7 @@ def main(mode, input_filepath, output_filepath):
     early_stopping_rounds = cfg["lgbm_early_stopping_rounds"]
     splits = cfg["lgbm_splits_for_cv"]
     verbose_eval = cfg["lgbm_verbose_eval"]
+    grouped_on_building = cfg["lgbm_cv_grouped_on_building"]
     ###########################################################################
 
     if mode == "full":
@@ -46,7 +48,7 @@ def main(mode, input_filepath, output_filepath):
                                 output_filepath)
     elif mode == "cv":
         start_cv_run(train_df, label, params, splits, verbose_eval,
-                     num_boost_round, early_stopping_rounds, output_filepath)
+                     num_boost_round, early_stopping_rounds, output_filepath, grouped_on_building)
     elif mode == "by_meter":
         start_full_by_meter_run(train_df, label, params, verbose_eval,
                                 num_boost_round, early_stopping_rounds, output_filepath)
@@ -192,7 +194,8 @@ def start_full_by_building_run(train_df, label, params, splits, verbose_eval,
 
 
 def start_cv_run(train_df, label, params, splits, verbose_eval,
-                 num_boost_round, early_stopping_rounds, output_filepath):
+                 num_boost_round, early_stopping_rounds, output_filepath,
+                 grouped_on_building):
     """
     Starts a Cross Validation Run with the parameters provided.
     Scores will be documented and models will be saved.
@@ -206,12 +209,34 @@ def start_cv_run(train_df, label, params, splits, verbose_eval,
     :param early_stopping_rounds: If no improvement of the validation score in
     n rounds occur, the training will be stopped.
     :param output_filepath: Directory that will contain the trained models.
+    :param grouped_on_building: Logical indicating whether cv should be done, by
+    grouping the folds on building_id. Note that if set to True, building_id must
+    not be included in the drop section in the config file.
     """
-    output_filepath = output_filepath + "_cv"
+    if grouped_on_building:
+        if not 'building_id' in train_df.columns:
+            raise ValueError(
+                "For grouped cv, the cross validation is grouped on building_id."
+                "Therefore it must be excluded from the drop section in the config file,"
+                "before using make data."
+                "Note that the building_id is still not included in the model,"
+                "it is needed for specifying the folds only and will be dropped afterwards.")
+        output_filepath = output_filepath + "grouped_cv"
+        is_meter0 = (train_df.meter == 0).values
+        train_df = train_df.iloc[is_meter0,]
+        label = label.iloc[is_meter0,]
+        train_df = train_df.reset_index(drop = True)
+        groups = train_df.building_id
+        train_df = train_df.drop(columns = 'building_id')
+        gkf = GroupKFold(n_splits = splits)
+        indices = gkf.split(train_df, label, groups)
+    else:
+        output_filepath = output_filepath + "_cv"
+        kf = Kfold(n_splits = splits, shuffle = False, random_state = 1337)
+        indices = kf.split(train_df, label)
     cv_results = []
     with timer("Performing " + str(splits) + " fold cross-validation"):
-        kf = KFold(n_splits=splits, shuffle=False, random_state=1337)
-        for i, (train_index, test_index) in enumerate(kf.split(train_df, label)):
+        for i, (train_index, test_index) in enumerate(indices):
             with timer("~~~~ Fold %d of %d ~~~~" % (i + 1, splits)):
                 x_train, x_valid = train_df.iloc[train_index], train_df.iloc[test_index]
                 y_train, y_valid = label[train_index], label[test_index]
