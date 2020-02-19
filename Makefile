@@ -31,7 +31,7 @@ data: requirements
 
 ## Make Features
 features:
-	$(PYTHON_INTERPRETER) src/features/build_features.py data/interim data/processed
+	$(PYTHON_INTERPRETER) src/features/build_features.py data data/processed
 
 ## Make Train
 train:

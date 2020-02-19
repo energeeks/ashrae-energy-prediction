@@ -11,26 +11,30 @@ from src.timer import timer
 
 
 @click.command()
-@click.argument('input_filepath', type=click.Path(exists=True))
+@click.argument('data_dir', type=click.Path(exists=True))
 @click.argument('output_filepath', type=click.Path())
-def main(input_filepath, output_filepath):
+def click_main(data_dir, output_filepath):
+    main(data_dir, output_filepath)
+
+
+def main(data_dir, output_filepath):
     """ Runs data feature engineering scripts to turn interim data from
         (../interim) into data which is ready for usage in ML models
         (saved in ../processed).
-        :param input_filepath: Directory that contains the interim data
+        :param data_dir: Directory that contains the data
         :param output_filepath: Directory where processed results will be saved in.
     """
     with open("src/config.yml", 'r') as ymlfile:
         cfg = yaml.load(ymlfile, Loader=yaml.FullLoader)
 
     with timer("Loading interim data"):
-        train_df, test_df = load_interim_data(input_filepath)
+        train_df, test_df = load_interim_data(data_dir + "/interim")
 
     train_df, test_df = build_features(train_df, test_df, cfg=cfg)
 
     if cfg["exclude_faulty_rows"]:
         with timer("Exclude faulty data and outliers"):
-            train_df = exclude_faulty_readings(train_df)
+            train_df = exclude_faulty_readings(train_df, data_dir + "/external")
 
     if cfg["add_leaks_to_train"]:
         with timer("Adding Leak Label to training set"):
@@ -224,14 +228,14 @@ def add_lag_features(data_frame, cols, windows):
     return data_frame
 
 
-def exclude_faulty_readings(data_frame):
+def exclude_faulty_readings(data_frame, external_data_dir):
     """"
     Cleanses the provided data_frame from faulty readings and/or outlier data.
     Special thanks goes to https://www.kaggle.com/purist1024/ashrae-simple-data
     -cleanup-lb-1-08-no-leaks for providing a detailed guide and identification
     of the problematical rows.
     """
-    rows_to_drop = pd.read_csv("data/external/rows_to_drop.csv")
+    rows_to_drop = pd.read_csv(external_data_dir + "/rows_to_drop.csv")
     return data_frame.drop(index=rows_to_drop.iloc[:, 0])
 
 
@@ -340,4 +344,4 @@ def save_processed_data(output_filepath, train_df, test_df):
 
 
 if __name__ == '__main__':
-    main()
+    click_main()

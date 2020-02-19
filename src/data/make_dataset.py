@@ -19,12 +19,16 @@ from src.timer import timer
 @click.command()
 @click.argument('data_dir', type=click.Path(exists=True))
 @click.argument('output_dir', type=click.Path())
+def click_main(data_dir, output_dir):
+    main(data_dir, output_dir)
+
+
 def main(data_dir, output_dir):
     """
     Runs data processing scripts to turn raw data (data_dir/raw) and external
     data (data_dir/external) into cleaned data ready for feature engineering
     (saved in output_dir).
-    :param data_dir: Directory that contains the raw data
+    :param data_dir: Directory that contains the data
     :param output_dir: Directory where results will be saved in.
     """
     logger = logging.getLogger(__name__)
@@ -283,4 +287,4 @@ if __name__ == '__main__':
     # load up the .env entries as environment variables
     load_dotenv(find_dotenv())
 
-    main()
+    click_main()
