@@ -1,5 +1,5 @@
 # Standard Packages
-numpy==1.17.3
+numpy>=1.16.0
 matplotlib
 jupyter
 tensorflow
