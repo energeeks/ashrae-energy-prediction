@@ -11,6 +11,7 @@ label_area_per_floor_outlier: True
 encode_wind_direction: False
 fill_na_with_zero: False
 include_feels_like: True
+drop_buildings_with_leaks: True
 
 add_lag_features: True
 lag_columns:
@@ -41,6 +42,7 @@ drop:
   - country_code
   - location
   - site_id
+  - building_id
 
 
 ###############################################################################
@@ -65,7 +67,6 @@ lgbm_early_stopping_rounds: 50
 lgbm_verbose_eval: 25
 lgbm_splits_for_cv: 4
 lgbm_cv_grouped_on_building: True
-
 ##########################################################################
 # DEFINE PARAMETERS FOR THE CatBoost MODEL                               #
 ##########################################################################

@@ -39,6 +39,12 @@ def main(input_filepath, output_filepath):
     with timer("Sort training set"):
         train_df.sort_values("timestamp", inplace=True)
         train_df.reset_index(drop=True, inplace=True)
+       
+    if cfg["drop_buildings_with_leaks"]:
+        with timer("Drop buildings with leaks from train set"):
+            buildings_with_leaks = [131, 163, 166, 168, 174, 179, 201]
+            train_df[np.invert(train_df.building_id.isin(buildings_with_leaks))]
+            train_df.reset_index(drop = True, inplace = True)
 
     with timer("Dropping specified columns"):
         train_df = drop_columns(train_df, cfg["drop"])
