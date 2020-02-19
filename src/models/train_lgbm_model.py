@@ -210,7 +210,8 @@ def start_cv_run(train_df, label, params, splits, verbose_eval,
     n rounds occur, the training will be stopped.
     :param output_filepath: Directory that will contain the trained models.
     :param grouped_on_building: Logical indicating whether cv should be done, by
-    grouping the folds on building_id.
+    grouping the folds on building_id. Note that if set to True, building_id must
+    not be included in the drop section in the config file.
     """
     if grouped_on_building:
         if not 'building_id' in train_df.columns:
@@ -224,13 +225,14 @@ def start_cv_run(train_df, label, params, splits, verbose_eval,
         is_meter0 = (train_df.meter == 0).values
         train_df = train_df.iloc[is_meter0,]
         label = label.iloc[is_meter0,]
+        train_df = train_df.reset_index(drop = True)
         groups = train_df.building_id
-        train_df = drop_columns(train_df, 'building_id')
+        train_df = train_df.drop(columns = 'building_id')
         gkf = GroupKFold(n_splits = splits)
         indices = gkf.split(train_df, label, groups)
     else:
         output_filepath = output_filepath + "_cv"
-        kf = Kfold(n_splits = splits, shuffle = False, random = state = 1337)
+        kf = Kfold(n_splits = splits, shuffle = False, random_state = 1337)
         indices = kf.split(train_df, label)
     cv_results = []
     with timer("Performing " + str(splits) + " fold cross-validation"):
