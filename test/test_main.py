@@ -18,7 +18,6 @@ class main_TestCase(unittest.TestCase):
 
     def test(self):
         # given:
-        os.chdir("..")
         data_dir = "test-data"
         interim_dir = self.test_dir + "/interim"
         processed_dir = self.test_dir + "/processed"
