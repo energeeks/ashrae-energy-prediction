@@ -277,6 +277,7 @@ def calculate_feels_like_temp(df):
     :return: Dataframe with added feature
     """
     subset = df[["air_temperature", "wind_speed", "relative_humidity"]].drop_duplicates()
+    subset["air_temp_f"] = subset["air_temperature"] * 9 / 5 + 32
     subset["feels_like_temp"] = subset.apply(
         lambda row: calculate_row_feels_like_temp(row["air_temperature"], row["wind_speed"], row["relative_humidity"]),
         axis=1)

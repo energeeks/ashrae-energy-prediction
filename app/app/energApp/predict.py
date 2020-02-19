@@ -22,7 +22,6 @@ def predict_energy_consumption(buildings):
     df["meter"] = 0
     df["floor_count"] = df["floorcount"]
     df["air_temperature"] = df["temp"]
-    df["air_temp_f"] = df["air_temperature"] * 9 / 5. + 32
     df["relative_humidity"] = df["humidity"]
     df["dew_temperature"] = df["air_temperature"] - ((100 - df["relative_humidity"]) / 5)
     df["precip_depth_1_hr"] = np.nan
