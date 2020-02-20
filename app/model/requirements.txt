@@ -1,0 +1,4 @@
+Flask
+pandas
+lightgbm
+numpy
