@@ -18,7 +18,6 @@ def predict_energy_consumption(buildings):
     df = pd.concat(forecasts)
     df.drop(columns="id", inplace=True)
     df = buildings.merge(df, left_on="id", right_on="building_id")
-    air_temperature = df["temp"]
     df["meter"] = 0
     df["floor_count"] = df["floorcount"]
     df["air_temperature"] = df["temp"]
@@ -67,7 +66,7 @@ def predict_energy_consumption(buildings):
                                 "building_id": building_ids,
                                 "meter": df["meter"],
                                 "timestamp": timestamps,
-                                "air_temperature": air_temperature})
+                                "air_temperature": df["air_temperature"]})
     return predictions
 
 

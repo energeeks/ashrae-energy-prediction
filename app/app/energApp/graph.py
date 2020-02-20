@@ -17,7 +17,7 @@ def create_plot(elements, prediction):
     reading_1 = prediction["reading"].loc[prediction["meter"] == 1]
     reading_2 = prediction["reading"].loc[prediction["meter"] == 2]
     reading_3 = prediction["reading"].loc[prediction["meter"] == 3]
-    timestamp = prediction["timestamp"]
+    timestamp = prediction["timestamp"].loc[prediction["meter"] == 0]
 
     data = []
 
