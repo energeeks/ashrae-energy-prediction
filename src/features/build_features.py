@@ -253,6 +253,8 @@ def encode_wind_direction(data_frame):
 
 
 def calculate_relative_humidity(df):
+    if "relative_humidity" in df.columns:
+        return df
     subset = df[["air_temperature", "dew_temperature"]].drop_duplicates()
     subset["relative_humidity"] = subset.apply(
         lambda row: calculate_row_relative_humidity(row["air_temperature"], row["dew_temperature"]), axis=1)
