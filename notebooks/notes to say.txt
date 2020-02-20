@@ -1,0 +1,49 @@
+Faulty Readings:
+
+I ll give a short example of how we find "faulty" meter readings
+in this plot we can see the mean meter reading by_building
+and pretty obvious there is building with extreme high values going up to 20 mio kwh
+
+we further inspect this building which is number 1099 and can see for meter 2
+that this meter is producing these outliers
+The plot shows the mean meter readings per hour in blu and per day in orange
+So as we can see this meter has values up to 20 000 mio kwh per hour
+And we defined a cutoff value for this meter at about 30 000 kwh and dropped all rows
+that contained higher values, and helped to improve our score
+
+1 minute 
+
+Some showed that for example dropping zeros in site 0 (first 140 days are zero or nearly zero)
+helps most (17,8 percent)
+
+Other indicators:
+Unjustified runs of zero readings: We identify sequences of more than 48 hours with zero readings 
+which do not occur during the typical seasons for the designated meter type
+Zero readings for electical meters: There's no reason for a building to ever have zero electrical usage,
+so we simply throw them all away.
+The first 141 days of electricity for site 0: Most of these would be covered by the previous sets, 
+but there are a few stray non-zero values that we ignore because they don't fit the overall pattern.
+Abnormally high readings from building 1099: These values are just absurdly high and 
+don't fit an established pattern. Leaderboard probes show that we do indeed benefit by dropping the outliers.
+
+
+Timestamp Alignment:
+
+Ok so timestamps turned out to be a pit tricky and heres why:
+Before we can merge our training data with the weather data
+we observe following as we see in this plot:
+For site 4 and site 5 we have plotted the relative mean air temperature and electricity
+now what's interesting here:
+For site 4 the meter reading has its peak in for BOTH sites around midday/ afternoon
+so for meter reading theres not much difference for different sites
+BUT the temperature for site 4 peaks around midnight and for site 5 it peaks around 3 pm
+And that leads to the conclusion that the meter reading timestamps are measured in local time
+and weather timestamps are given in utc world time.
+So what do we do?
+Some people on kaggle did the work to find out where the different sites might be located by
+playing internet detective and searching for the buildings or correlate wheather data for different cities
+And with that information we can find the differences between the respective timezone of meter reading
+and the world time for weather
+and as we can see here after timestamp alignment the peaks look much more reasonable.
+
+
