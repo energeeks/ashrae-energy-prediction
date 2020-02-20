@@ -2,149 +2,131 @@
 {% import "bootstrap/wtf.html" as wtf %}
 
 {% block body %}
+<div class="col-lg-12 text-center" style="margin: 10px">
+  <h3>Frequently Asked Questions</h3>
+</div>
+<div class="container card">
+  <button type="button" class="collapsible" style="margin-top: 10px;">
+    <strong>Who are the EnerGeeks?</strong>
+  </button>
+  <div class="row align-items-center coll-content" id="coll-0">
+    <div class="col-sm-12 text-left" id="faq0" style="margin: 5px">
+      <p>We are computer science & statistics students at LMU Munich and this project is happening as part of a Data Science Practical. Our plan was to participate in the associated Kaggle Challenge and subsequently build a product surrounding the trained model. Eventually we placed 160th in the public leaderboard and unfortunately only 509th in the private leaderboard.</p>
+    </div>
+  </div>
 
-<div class="container" style="margin-top: 5em;">
+  <button type="button" class="collapsible" style="margin-top: 10px;">
+    <strong>What is the EnergApp?</strong>
+  </button>
+  <div class="row align-items-center coll-content" id="coll-1">
+    <div class="col-sm-12 text-left" id="faq1" style="margin: 5px">
+      <p>EnergApp is the second phase of our data science practical. The aim of EnergApp is to incorporate the predicted model from the kaggle challenge. The idea behind this is that you can submit your building's data and in return get the predicted energy consumption for said building, which makes our findings available to everyone.</p>
+    </div>
+  </div>
+
+  <button type="button" class="collapsible" style="margin-top: 10px;">
+    <strong>Do I need to sign up?</strong>
+  </button>
+  <div class="row align-items-center coll-content" id="coll-2">
+    <div class="col-sm-12 text-left" id="faq2" style="margin: 5px">
+      <p>Yes, n order to submit and manage your buildings, you have to sign up for our web application. Don't worry, your data will be safe with us</p>
+    </div>
+  </div>
+
+  <button type="button" class="collapsible" style="margin-top: 10px;">
+    <strong>Where can I manage my buildings?</strong>
+  </button>
+  <div class="row align-items-center coll-content" id="coll-3">
+    <div class="col-sm-12 text-left" id="faq3" style="margin: 5px">
+      <p>Use the navbar to go to the buildings section or click <a href="{{url_for('main_bp.buildings_page')}}">here</a>. You'll find a list of all your buildings and accompanying attributes.</p>
+    </div>
+  </div>
+
+  <button type="button" class="collapsible" style="margin-top: 10px;">
+    <strong>How can I submit my building's data?</strong>
+  </button>
+  <div class="row align-items-center coll-content" id="coll-4">
+    <div class="col-sm-12 text-left" id="faq4" style="margin: 5px">
+      <p>In the buildings tab just click on the <b>ADD+</b> button and enter your building's details.</p>
+    </div>
+  </div>
 
 
-   <div class="accordion" id="faq-accordion">
-  <div class="card">
-    <div class="card-header" id="faq-heading-1">
-      <h2 class="mb-0">
-        <button class="btn btn-link" type="button" data-toggle="collapse" data-target="#faq-collapse-1" aria-expanded="true" aria-controls="faq-collapse-1">
-          What is EnergApp?
-        </button>
-      </h2>
+  <button type="button" class="collapsible" style="margin-top: 10px;">
+    <strong>Where do I find the predictions?</strong>
+  </button>
+  <div class="row align-items-center coll-content" id="coll-11">
+    <div class="col-sm-12 text-left" id="faq11" style="margin: 5px">
+      <p>Just got to the <a href="{{url_for('main_bp.predictions_page')}}">prediction tab</a> and enjoy.</p>
     </div>
+  </div>
 
-    <div id="faq-collapse-1" class="collapse show" aria-labelledby="faq-heading-1" data-parent="#faq-accordion">
-      <div class="card-body">
-        EnergApp is the phase 2 of our Kaggle Challange. The aim of EnergApp is to incorporate the predicted model from phase 1.
-        The idea behind this is that users can submit their building's data and in return they get the predicted energy consumption
-        for said building.
-      </div>
+  <button type="button" class="collapsible" style="margin-top: 10px;">
+    <strong>What model is used for the predictions?</strong>
+  </button>
+  <div class="row align-items-center coll-content" id="coll-5">
+    <div class="col-sm-12 text-left" id="faq5" style="margin: 5px">
+      <p> We trained our model by using LightGBM, which is common framework for gradient boosting.</p>
     </div>
   </div>
-  <div class="card">
-    <div class="card-header" id="faq-heading-2">
-      <h2 class="mb-0">
-        <button class="btn btn-link collapsed" type="button" data-toggle="collapse" data-target="#faq-collapse-2" aria-expanded="false" aria-controls="faq-collapse-2">
-          Do I need to sign up?
-        </button>
-      </h2>
-    </div>
-    <div id="faq-collapse-2" class="collapse" aria-labelledby="faq-heading-2" data-parent="#faq-accordion">
-      <div class="card-body">
-        In order to submit and manage your buildings, you have to sign up for our web application.
-      </div>
-    </div>
-  </div>
-  <div class="card">
-    <div class="card-header" id="faq-heading-3">
-      <h2 class="mb-0">
-        <button class="btn btn-link collapsed" type="button" data-toggle="collapse" data-target="#faq-collapse-3" aria-expanded="false" aria-controls="faq-collapse-3">
-          How can I submit my building's data?
-        </button>
-      </h2>
-    </div>
-    <div id="faq-collapse-3" class="collapse" aria-labelledby="faq-heading-3" data-parent="#faq-accordion">
-      <div class="card-body">
-        You can add your buildings by going to Buildings and than clicking on the add button.
-      </div>
-    </div>
-  </div>
-   <div class="card">
-    <div class="card-header" id="faq-heading-4">
-      <h2 class="mb-0">
-        <button class="btn btn-link collapsed" type="button" data-toggle="collapse" data-target="#faq-collapse-4" aria-expanded="false" aria-controls="faq-collapse-4">
-          Where can I manage my buildings?
-        </button>
-      </h2>
-    </div>
-    <div id="faq-collapse-4" class="collapse" aria-labelledby="faq-heading-3" data-parent="#faq-accordion">
-      <div class="card-body">
-        You can manage your buildings by going to Buildings. There you will get a list of all your submitted buildings.
-      </div>
-    </div>
-  </div>
-   <div class="card">
-    <div class="card-header" id="faq-heading-5">
-      <h2 class="mb-0">
-        <button class="btn btn-link collapsed" type="button" data-toggle="collapse" data-target="#faq-collapse-5" aria-expanded="false" aria-controls="faq-collapse-5">
-          What model are the predictions based on?
-        </button>
-      </h2>
-    </div>
-    <div id="faq-collapse-5" class="collapse" aria-labelledby="faq-heading-3" data-parent="#faq-accordion">
-      <div class="card-body">
-        We trained our model by using Light GBM, which is a high-performance gradient boosting framework based on decision tree algorithm (GBDT).
 
-      </div>
+  <button type="button" class="collapsible" style="margin-top: 10px;">
+    <strong>Can I trust the predictions?</strong>
+  </button>
+  <div class="row align-items-center coll-content" id="coll-6">
+    <div class="col-sm-12 text-left" id="faq6" style="margin: 5px">
+      <p>Well yes, but actually no. We tried to make the predictions as accurate as possible but forecasting the energy consumption for unseen buildings is still very experimental and needs further evaluation to be stable.</p>
     </div>
   </div>
-  <div class="card">
-    <div class="card-header" id="faq-heading-6">
-      <h2 class="mb-0">
-        <button class="btn btn-link collapsed" type="button" data-toggle="collapse" data-target="#faq-collapse-6" aria-expanded="false" aria-controls="faq-collapse-6">
-          How well can I trust the predictions?
-        </button>
-      </h2>
-    </div>
-    <div id="faq-collapse-6" class="collapse" aria-labelledby="faq-heading-3" data-parent="#faq-accordion">
-      <div class="card-body">
-        Procedure
-      </div>
+
+  <button type="button" class="collapsible" style="margin-top: 10px;">
+    <strong>Can I download the model somewhere?</strong>
+  </button>
+  <div class="row align-items-center coll-content" id="coll-7">
+    <div class="col-sm-12 text-left" id="faq7" style="margin: 5px">
+      <p>We provide our model in txt-format, which can be downloaded from <a href="https://syncandshare.lrz.de/getlink/fiEpYXwqbwsQjuBHaJ1ZRNnF/model-lgbm-gbdt-600-no-ids.txt">here</a></p>
     </div>
   </div>
-  <div class="card">
-    <div class="card-header" id="faq-heading-7">
-      <h2 class="mb-0">
-        <button class="btn btn-link collapsed" type="button" data-toggle="collapse" data-target="#faq-collapse-7" aria-expanded="false" aria-controls="faq-collapse-7">
-          How can I access the model?
-        </button>
-      </h2>
-    </div>
-    <div id="faq-collapse-7" class="collapse" aria-labelledby="faq-heading-3" data-parent="#faq-accordion">
-      <div class="card-body">
-        We provide our model in txt-format, which can be downloaded from <a href="https://syncandshare.lrz.de/getlink/fiEpYXwqbwsQjuBHaJ1ZRNnF/model-lgbm-gbdt-600-no-ids.txt">here</a> and save it under save it as ./app/model/.
-      </div>
+
+  <button type="button" class="collapsible" style="margin-top: 10px;">
+    <strong>Can I access your model without your app?</strong>
+  </button>
+  <div class="row align-items-center coll-content" id="coll-8">
+    <div class="col-sm-12 text-left" id="faq8" style="margin: 5px">
+      <p>Sure, we provide a public endpoint, which will return your predictions if you provide the necessary inpute data. The endpoint is       <p>Sure, we provide a public endpoint, which will return your predictions if you provide the necessary inpute data. The endpoint is "localhost:5001/predict".</p>
     </div>
   </div>
-  <div class="card">
-    <div class="card-header" id="faq-heading-8">
-      <h2 class="mb-0">
-        <button class="btn btn-link collapsed" type="button" data-toggle="collapse" data-target="#faq-collapse-8" aria-expanded="false" aria-controls="faq-collapse-8">
-          What input is required for Model API?
-        </button>
-      </h2>
-    </div>
-    <div id="faq-collapse-8" class="collapse" aria-labelledby="faq-heading-3" data-parent="#faq-accordion">
-      <div class="card-body">
-        Our app comes with a built in API to receive energy predictions. To get a prediction you need to attach a json payload containing various
-        attributes. We provide a list of all available attributes as well as an example request can be found in our GitHub repository:
-        <a href="https://github.com/energeeks/ashrae-energy-prediction">https://github.com/energeeks/ashrae-energy-prediction</a>.
-      </div>
+
+  <button type="button" class="collapsible" style="margin-top: 10px;">
+    <strong>What input is required for Model API?</strong>
+  </button>
+  <div class="row align-items-center coll-content" id="coll-12">
+    <div class="col-sm-12 text-left" id="faq12" style="margin: 5px">
+      <p> We provide a list of all required attributes as well as an example request can be found in our <a href="https://github.com/energeeks/ashrae-energy-prediction">repository</a>.
+      </p>
     </div>
   </div>
-  <div class="card">
-    <div class="card-header" id="faq-heading-9">
-      <h2 class="mb-0">
-        <button class="btn btn-link collapsed" type="button" data-toggle="collapse" data-target="#faq-collapse-9" aria-expanded="false" aria-controls="faq-collapse-9">
-          How to contact us?
-        </button>
-      </h2>
+
+  <button type="button" class="collapsible" style="margin-top: 10px;">
+    <strong>What input is required for Model API?</strong>
+  </button>
+  <div class="row align-items-center coll-content" id="coll-9">
+    <div class="col-sm-12 text-left" id="faq9" style="margin: 5px">
+      <p> We provide a list of all required attributes as well as an example request, which can be found in our <a href="https://github.com/energeeks/ashrae-energy-prediction">repository</a>.
+      </p>
     </div>
-    <div id="faq-collapse-9" class="collapse" aria-labelledby="faq-heading-3" data-parent="#faq-accordion">
-      <div class="card-body">
-        You can check us out in GitHub at <a href="https://github.com/energeeks/ashrae-energy-prediction">https://github.com/energeeks/ashrae-energy-prediction</a>. From there you can
-        contact the contributors of this project.
-      </div>
+  </div>
+
+  <button type="button" class="collapsible" style="margin-top: 10px;">
+    <strong>I really like it here, what can I do for you?</strong>
+  </button>
+  <div class="row align-items-center coll-content" id="coll-10">
+    <div class="col-sm-12 text-left" id="faq10" style="margin: 5px">
+      <p>Thanks for the compliment! We really appreciate it, since we invested a lot of time and effort to create this amazing project. If by chance you are our supervisor, we would be really happy to receive a good grade ;)</p>
     </div>
   </div>
 </div>
-</div>
 
-<style>
-
-</style>
+<script src="{{ url_for('static', filename='faq.js') }}"></script>
 
 {% endblock %}
