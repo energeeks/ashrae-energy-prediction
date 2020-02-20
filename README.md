@@ -98,6 +98,13 @@ Description
 ------------
 The aim of part two of this project focuses on the development of a web application, which must incorporate the predicted model from phase 1. Obviously this is now more or less a proof of concept, but the main idea is that users (e.g. housing associations) can enter their real estates and are able to predict energy consumption of these for a defined period of time. Hence time points with high energy needs can be identified. So far the forecast only includes a range of 5 days since this is the limit for free usage of our chosen weather api.
 
+Example for a prediction with the EnergApp
+------------
+
+<p align="center">
+<img src="docs/example_predictions.png" height="250px">
+</p>
+
 App Architecture
 ----------------
 <p align="center">
@@ -121,7 +128,7 @@ Our app comes with a built in API to receive energy predictions. The endpoint is
 | relative\_humidity        |    Float describing relative humidity   |
 | dew\_temperature          |   Float describing dew temperature    |
 | precip\_depth\_1\_hr      |   Float describing hourly precipitation     |
-| air\_temp\_f              |   Float describing feels like temperature    |
+| air\_temp\_f              |   Float describing air temperature in fahrenheit    |
 | feels\_like\_temp         |  Float describing feels like temperature     |
 | hour                      |   Integer between 0 and 23    |
 | weekday                   |   Integer between 0 and 6    |
@@ -150,6 +157,7 @@ Go into `./app` and run the command:
 $ docker-compose up --build
 ```
 Open `http://localhost:80` and enjoy!
+Don't forget to enter your openweathermap API key in `config.py`.
 
 ### Download the model
 To use the app, you must download the model from
