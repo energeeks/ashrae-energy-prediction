@@ -35,15 +35,7 @@ features:
 
 ## Make Train
 train:
-ifeq (xgb,$(MODEL))
-	$(PYTHON_INTERPRETER) src/models/train_xgb_model.py $(MODE) data/processed models/xgb
-endif
-ifeq (ctb,$(MODEL))
-	$(PYTHON_INTERPRETER) src/models/train_ctb_model.py $(MODE) data/processed models/ctb
-endif
-ifeq (lgbm,$(MODEL))
-	$(PYTHON_INTERPRETER) src/models/train_lgbm_model.py $(MODE) data/processed models/lgbm
-endif
+	$(PYTHON_INTERPRETER) src/models/train_model.py $(MODEL) $(MODE) data/processed models/$(MODEL)
 
 ## Make Prediction
 predict:
