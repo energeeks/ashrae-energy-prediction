@@ -1,37 +1,27 @@
 import os
-import random
-import yaml
-import click
+
 import catboost as ctb
-import numpy as np
-import pandas as pd
+import click
 from sklearn.model_selection import KFold
 
+from src.models.model_utils import load_processed_training_data
 from src.timer import timer
 
 
-@click.command()
-@click.argument('mode')
-@click.argument('input_filepath', type=click.Path(exists=True))
-@click.argument('output_filepath', type=click.Path())
-def main(mode, input_filepath, output_filepath):
+def train_ctb_model(mode, input_filepath, output_filepath, cfg):
     """
-    Collects prepared data and starts training an CatBoost model. Parameters
-    can be specified by editing src/config.yml.
-    :param mode: Specifies mode to run. Now only cv (cross validation)
-    is supported.
+    Collects prepared data and starts training an CatBoost model.
+    :param mode: Specifies mode to run. Now only cv (cross validation) is supported.
     :param input_filepath: Directory that contains the processed data.
     :param output_filepath: Directory that will contain the trained models.
+    :param cfg: Config read from src/config.yml.
     """
-    random.seed(1337)
     with timer("Loading processed training data"):
-        train_df, label = load_processed_training_data(input_filepath)
+        train_df, label = load_processed_training_data(input_filepath, cfg["columns"])
 
     ###########################################################################
     # DEFINE PARAMETERS FOR THE LGBM MODEL                                     #
     ###########################################################################
-    with open("src/config.yml", 'r') as ymlfile:
-        cfg = yaml.load(ymlfile, Loader=yaml.FullLoader)
     params = cfg["ctb_params"]
     early_stopping_rounds = cfg["ctb_early_stopping_rounds"]
     splits = cfg["ctb_splits_for_cv"]
@@ -43,21 +33,6 @@ def main(mode, input_filepath, output_filepath):
                      early_stopping_rounds, output_filepath)
     else:
         raise ValueError("Choose a valid mode: 'cv'")
-
-
-def load_processed_training_data(input_filepath):
-    """
-    Loads processed data and returns a df with distinguished label
-    column.
-    :param input_filepath: Directory that contains the processed data.
-    :return Tuple with the Training Data and a vector with the matching labels.
-    """
-    train_df = pd.read_pickle(input_filepath + "/train_data.pkl")
-
-    label = np.log1p(train_df["meter_reading"])
-    del train_df["meter_reading"]
-
-    return train_df, label
 
 
 def start_cv_run(train_df, label, params, splits, verbose_eval,
@@ -106,7 +81,3 @@ def save_model(output_filepath, model):
     new_version = str(max_version + 1).zfill(4)
     model.save_model(output_filepath + "/" + new_version + ".txt")
     click.echo("Model successfully saved in folder: " + output_filepath)
-
-
-if __name__ == '__main__':
-    main()

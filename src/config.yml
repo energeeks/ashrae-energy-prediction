@@ -22,26 +22,49 @@ lag_windows:
   - 24
 
 exclude_faulty_rows: True
+
 ###############################################################################
 # SPECIFY IF LEAKS SHOULD BE USED OR NOT                                      #
 ###############################################################################
+
 use_leaks: False
 add_leaks_to_train: False
 
 ###############################################################################
-# DEFINE COLUMNS TO BE DROPPED                                                #
+# DEFINE MODEL COLUMNS                                                        #
 ###############################################################################
-drop:
-  - timestamp
-  - month
-  - sea_level_pressure
-  - wind_direction
-  - wind_speed
-  - timezone
-  - country_code
-  - location
-  - site_id
-  - building_id
+
+columns:
+#  - site_id
+#  - building_id
+  - meter
+  - primary_use
+  - square_feet
+  - year_built
+  - floor_count
+  - air_temperature
+  - cloud_coverage
+  - dew_temperature
+  - precip_depth_1_hr
+#  - sea_level_pressure
+#  - wind_direction
+#  - wind_speed
+  - relative_humidity
+  - air_temp_f
+  - feels_like_temp
+#  - timestamp
+  - hour
+  - weekday
+#  - month
+  - area_per_floor
+  - outlier_square_feet
+  - outlier_area_per_floor
+  - air_temperature_6_lag
+  - air_temperature_24_lag
+  - dew_temperature_6_lag
+  - dew_temperature_24_lag
+  - cloud_coverage_6_lag
+  - cloud_coverage_24_lag
 
 ###############################################################################
 # DEFINE PARAMETERS FOR THE LGBM MODEL                                        #
