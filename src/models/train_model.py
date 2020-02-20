@@ -9,6 +9,7 @@ from src.models.train_xgb_model import train_xgb_model
 
 
 @click.command()
+@click.argument('model')
 @click.argument('mode')
 @click.argument('input_filepath', type=click.Path(exists=True))
 @click.argument('output_filepath', type=click.Path())
