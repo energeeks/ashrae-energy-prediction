@@ -1,13 +1,14 @@
 import os
 
+import catboost as ctb
 import click
 import lightgbm as lgb
 import numpy as np
 import pandas as pd
 import xgboost as xgb
-import catboost as ctb
 import yaml
 
+from src.models.model_utils import load_processed_test_data
 from src.timer import timer
 
 
@@ -28,10 +29,7 @@ def main(input_filepath, model_type, model_path):
         cfg = yaml.load(ymlfile, Loader=yaml.FullLoader)
 
     with timer("Loading testing data"):
-        test_df = pd.read_pickle(input_filepath + "/test_data.pkl")
-
-    row_ids = test_df["row_id"]
-    del test_df["row_id"]
+        test_df, row_ids = load_processed_test_data(input_filepath, cfg["columns"])
 
     if model_type == "xgb":
         predictions = predict_with_xgb(test_df, model_path)

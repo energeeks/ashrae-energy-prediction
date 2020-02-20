@@ -1,31 +1,25 @@
 import os
 
 import click
-import numpy as np
 import pandas as pd
 import xgboost as xgb
 from sklearn.model_selection import KFold
 
+from src.models.model_utils import load_processed_training_data
 from src.timer import timer
 
 
-@click.command()
-@click.argument('mode')
-@click.argument('input_filepath', type=click.Path(exists=True))
-@click.argument('output_filepath', type=click.Path())
-def main(mode, input_filepath, output_filepath):
+def train_xgb_model(mode, input_filepath, output_filepath, cfg):
     """
-    Collects prepared data and starts training an XGBoost model. Parameters
-    can be specified by editing src/config.yml. Keep in mind that XGBoost does
-    not accept NA Values. So the corresponding function to set these to zero in
-    the preprocessing steps has to be set to true.
-    :param mode: Specifies mode to run. Options are full (no validation set,
-    single fold) and cv (cross validation).
+    Collects prepared data and starts training an XGBoost model. Keep in mind that XGBoost does not accept NA Values.
+    So the corresponding function to set these to zero in the preprocessing steps has to be set to true.
+    :param mode: Specifies mode to run. Options are full (no validation set, single fold) and cv (cross validation).
     :param input_filepath: Directory that contains the processed data.
     :param output_filepath: Directory that will contain the trained models.
+    :param cfg: Config read from src/config.yml.
     """
     with timer("Loading processed training data"):
-        train_df, label = load_processed_training_data(input_filepath)
+        train_df, label = load_processed_training_data(input_filepath, cfg["columns"])
 
     ###########################################################################
     # DEFINE PARAMETERS FOR THE XGB MODEL                                     #
@@ -52,22 +46,7 @@ def main(mode, input_filepath, output_filepath):
         start_cv_run(train_df, label, params, num_boost_round, early_stopping_rounds)
 
     else:
-        raise ValueError("Choose a valid mode: 'sub' for submission or 'cv' \
-        for cross validation")
-
-
-def load_processed_training_data(input_filepath):
-    """
-    Loads processed data and returns a xgb Matrix with distinguished label
-    column.
-    :param input_filepath: Directory that contains the processed data.
-    :return Tuple with the Training Data and a vector with the matching labels.
-    """
-    train_df = pd.read_pickle(input_filepath + "/train_data.pkl")
-    label = np.log1p(train_df["meter_reading"])
-    del train_df["meter_reading"]
-
-    return train_df, label
+        raise ValueError("Choose a valid mode: 'sub' for submission or 'cv' for cross validation")
 
 
 def start_full_training_run(train_df, label, params, num_boost_round,
@@ -180,7 +159,3 @@ def evaluate_xgb_cv_results(cv_results):
     max_version = max([int(file[:4]) for file in files_in_dir], default=0)
     new_version = str(max_version + 1).zfill(4)
     summary.to_csv(csv_path + "/" + new_version + ".csv")
-
-
-if __name__ == '__main__':
-    main()

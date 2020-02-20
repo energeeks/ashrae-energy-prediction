@@ -44,10 +44,6 @@ def main(data_dir, output_filepath):
         train_df.sort_values("timestamp", inplace=True)
         train_df.reset_index(drop=True, inplace=True)
 
-    with timer("Dropping specified columns"):
-        train_df = drop_columns(train_df, cfg["drop"])
-        test_df = drop_columns(test_df, cfg["drop"])
-
     with timer("Save processed data"):
         save_processed_data(output_filepath, train_df, test_df)
 
@@ -322,17 +318,6 @@ def add_leaked_data(train_df, test_df):
     del test_leak_df["row_id"]
 
     return pd.concat([train_df, test_leak_df], sort=False)
-
-
-def drop_columns(data_frame, drop):
-    """
-    Drops selected columns from dataframe
-    :param data_frame:
-    :param drop:
-    :return: dataframe with dropped dataframe
-    """
-    data_frame.drop(columns=drop, inplace=True)
-    return data_frame
 
 
 def save_processed_data(output_filepath, train_df, test_df):

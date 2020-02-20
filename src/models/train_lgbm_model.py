@@ -1,39 +1,27 @@
 import os
-import random
-import yaml
+
 import click
 import lightgbm as lgb
-import numpy as np
 import pandas as pd
-from sklearn.model_selection import KFold
 from sklearn.model_selection import GroupKFold
+from sklearn.model_selection import KFold
 
+from src.models.model_utils import load_processed_training_data
 from src.timer import timer
 
 
-@click.command()
-@click.argument('mode')
-@click.argument('input_filepath', type=click.Path(exists=True))
-@click.argument('output_filepath', type=click.Path())
-def main(mode, input_filepath, output_filepath):
+def train_lgbm_model(mode, input_filepath, output_filepath, cfg):
     """
-    Collects prepared data and starts training an LightGBM model. Parameters
-    can be specified by editing src/config.yml.
-    :param mode: Specifies mode to run. Options are full (no validation set,
-    single fold), cv (cross validation), by_meter (training by meter type),
-    by_building (training by building id).
+    Collects prepared data and starts training an LightGBM model.
+    :param mode: Specifies mode to run. Options are full (no validation set, single fold), cv (cross validation),
+    by_meter (training by meter type), by_building (training by building id).
     :param input_filepath: Directory that contains the processed data.
     :param output_filepath: Directory that will contain the trained models.
+    :param cfg: Config read from src/config.yml.
     """
-    random.seed(1337)
     with timer("Loading processed training data"):
-        train_df, label = load_processed_training_data(input_filepath)
+        train_df, label = load_processed_training_data(input_filepath, cfg["columns"])
 
-    ###########################################################################
-    # DEFINE PARAMETERS FOR THE LGBM MODEL                                     #
-    ###########################################################################
-    with open("src/config.yml", 'r') as ymlfile:
-        cfg = yaml.load(ymlfile, Loader=yaml.FullLoader)
     params = cfg["lgbm_params"]
     num_boost_round = cfg["lgbm_num_boost_round"]
     early_stopping_rounds = cfg["lgbm_early_stopping_rounds"]
@@ -57,21 +45,6 @@ def main(mode, input_filepath, output_filepath):
                                    num_boost_round, early_stopping_rounds, output_filepath)
     else:
         raise ValueError("Choose a valid mode: 'full', 'cv'")
-
-
-def load_processed_training_data(input_filepath):
-    """
-    Loads processed data and returns a df with distinguished label
-    column.
-    :param input_filepath: Directory that contains the processed data.
-    :return Tuple with the Training Data and a vector with the matching labels.
-    """
-    train_df = pd.read_pickle(input_filepath + "/train_data.pkl")
-
-    label = np.log1p(train_df["meter_reading"])
-    del train_df["meter_reading"]
-
-    return train_df, label
 
 
 def start_full_training_run(train_df, label, params, verbose_eval,
@@ -168,7 +141,7 @@ def start_full_by_building_run(train_df, label, params, splits, verbose_eval,
         train_by_building = train_by_building.reset_index(drop=True)
         label = train_by_building["label"]
         train_by_building = train_by_building.drop(columns=["building_id", "label"], axis=1)
-        with timer("Performing " + str(splits) + " fold cross-validation on building "\
+        with timer("Performing " + str(splits) + " fold cross-validation on building " \
                    + str(b)):
             kf = KFold(n_splits=splits, shuffle=False, random_state=1337)
             for i, (train_index, test_index) in enumerate(kf.split(train_by_building, label)):
@@ -225,14 +198,14 @@ def start_cv_run(train_df, label, params, splits, verbose_eval,
         is_meter0 = (train_df.meter == 0).values
         train_df = train_df.iloc[is_meter0,]
         label = label.iloc[is_meter0,]
-        train_df = train_df.reset_index(drop = True)
+        train_df = train_df.reset_index(drop=True)
         groups = train_df.building_id
-        train_df = train_df.drop(columns = 'building_id')
-        gkf = GroupKFold(n_splits = splits)
+        train_df = train_df.drop(columns='building_id')
+        gkf = GroupKFold(n_splits=splits)
         indices = gkf.split(train_df, label, groups)
     else:
         output_filepath = output_filepath + "_cv"
-        kf = Kfold(n_splits = splits, shuffle = False, random_state = 1337)
+        kf = KFold(n_splits=splits, shuffle=False, random_state=1337)
         indices = kf.split(train_df, label)
     cv_results = []
     with timer("Performing " + str(splits) + " fold cross-validation"):
@@ -306,7 +279,3 @@ def evaluate_cv_results(cv_results):
     max_version = max([int(file[:4]) for file in files_in_dir], default=0)
     new_version = str(max_version + 1).zfill(4)
     summary.to_csv(csv_path + "/" + new_version + ".csv")
-
-
-if __name__ == '__main__':
-    main()
