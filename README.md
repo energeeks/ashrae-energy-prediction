@@ -114,7 +114,7 @@ The app consists of a classic nginx/uwsgi/flask stack and is deployed as a compo
 
 Model API
 ----------------
-Our app comes with a built in API to receive energy predictions. The endpoint is available at port 5000 and extension `/predict`. To get a prediction you need to attach a json payload with following attributes. An example can be found [here](docs/example_request.json). The easiest way to obtain a fitting format is to convert a pandas dataframe to json using the built in methods.
+Our app comes with a built in API to receive energy predictions. The endpoint is available at port 5001 and extension `/predict`. To get a prediction you need to attach a json payload with following attributes. An example can be found [here](docs/example_request.json). The easiest way to obtain a fitting format is to convert a pandas dataframe to json using the built in methods.
 
 | Feature                   | Value |
 |---------------------------|-------|
