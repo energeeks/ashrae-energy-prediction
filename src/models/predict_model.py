@@ -279,7 +279,7 @@ def validate_submission(submission_df):
     submission_error = get_submission_error(submission_df)
     if submission_error:
         click.secho(submission_error, err=True, fg="red", bold=True)
-        click.pause()
+#        click.pause()
 
 
 def get_submission_error(submission_df):
