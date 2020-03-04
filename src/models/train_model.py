@@ -13,6 +13,10 @@ from src.models.train_xgb_model import train_xgb_model
 @click.argument('mode')
 @click.argument('input_filepath', type=click.Path(exists=True))
 @click.argument('output_filepath', type=click.Path())
+def click_main(model, mode, input_filepath, output_filepath):
+    main(model, mode, input_filepath, output_filepath)
+
+
 def main(model, mode, input_filepath, output_filepath):
     """
     Collects prepared data and starts training a model. Parameters can be specified by editing src/config.yml.
@@ -39,4 +43,4 @@ def main(model, mode, input_filepath, output_filepath):
 
 
 if __name__ == '__main__':
-    main()
+    click_main()

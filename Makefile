@@ -39,7 +39,7 @@ train:
 
 ## Make Prediction
 predict:
-	$(PYTHON_INTERPRETER) src/models/predict_model.py data/processed $(MODEL) $(MODEL_PATH)
+	$(PYTHON_INTERPRETER) src/models/predict_model.py data/processed $(MODEL) $(MODEL_PATH) submissions/submission.csv
 
 
 ## Delete all compiled Python files
