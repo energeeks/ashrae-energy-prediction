@@ -16,7 +16,12 @@ from src.timer import timer
 @click.argument('input_filepath', type=click.Path(exists=True))
 @click.argument('model_type')
 @click.argument('model_path', type=click.Path(exists=True))
-def main(input_filepath, model_type, model_path):
+@click.argument('submission_path', type=click.Path())
+def click_main(input_filepath, model_type, model_path, submission_path):
+    main(input_filepath, model_type, model_path, submission_path)
+
+
+def main(input_filepath, model_type, model_path, submission_path):
     """
     Loads a trained model and testing data to create a submission file which is
     ready for uploading to the kaggle challenge.
@@ -24,6 +29,7 @@ def main(input_filepath, model_type, model_path):
     :param model_type: Choose according to the boosting framework (xgb, lgbm, ctb)
     and if it's prediction by meter or building.
     :param model_path: Directory that contains the trained model
+    :param submission_path: The path for the submission CSV file
     """
     with open("src/config.yml", 'r') as ymlfile:
         cfg = yaml.load(ymlfile, Loader=yaml.FullLoader)
@@ -50,7 +56,7 @@ def main(input_filepath, model_type, model_path):
         raise ValueError(model_type + " is not a valid model type to predict from")
 
     with timer("Creating submission file"):
-        create_submission_file(row_ids, predictions, cfg["use_leaks"])
+        create_submission_file(submission_path, row_ids, predictions, cfg["use_leaks"])
 
 
 def predict_with_xgb(test_df, model_filepath):
@@ -243,10 +249,11 @@ def predict_with_lgbm_building(test_df, row_ids, model_filepath):
     return predictions
 
 
-def create_submission_file(row_ids, predictions, use_leaks=False):
+def create_submission_file(submission_path, row_ids, predictions, use_leaks=False):
     """
     Creates a submission file which fulfills the upload conditions for the
     kaggle challenge.
+    :param submission_path: The path for the submission CSV file
     :param row_ids: A vector with the matching row ids for the predicted labels
     :param predictions: Vector containing the predicted labels for the test data
     :param use_leaks: Indicates if leaks will be added to the submission or not
@@ -259,9 +266,9 @@ def create_submission_file(row_ids, predictions, use_leaks=False):
 
     validate_submission(submission)
 
-    submission_dir = "submissions"
+    submission_dir = os.path.dirname(submission_path)
     os.makedirs(submission_dir, exist_ok=True)
-    submission.to_csv(submission_dir + "/submission.csv", index=False)
+    submission.to_csv(submission_path, index=False)
 
 
 def validate_submission(submission_df):
@@ -323,4 +330,4 @@ def add_leaks_to_submission(predictions):
 
 
 if __name__ == '__main__':
-    main()
+    click_main()

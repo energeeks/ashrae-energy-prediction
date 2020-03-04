@@ -243,8 +243,9 @@ def save_model(output_filepath, model):
     files_in_dir = os.listdir(output_filepath)
     max_version = max([int(file[:4]) for file in files_in_dir], default=0)
     new_version = str(max_version + 1).zfill(4)
-    model.save_model(output_filepath + "/" + new_version + ".txt", num_iteration=model.best_iteration)
-    click.echo("Model successfully saved in folder: " + output_filepath)
+    output_file = output_filepath + "/" + new_version + ".txt"
+    model.save_model(output_file, num_iteration=model.best_iteration)
+    click.echo("Model successfully saved as: " + output_file)
 
 
 def evaluate_cv_results(cv_results):
