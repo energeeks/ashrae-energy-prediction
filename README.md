@@ -161,7 +161,7 @@ Don't forget to enter your openweathermap API key in `config.py`.
 
 ### Download the model
 To use the app, you must download the model from
-([here](https://syncandshare.lrz.de/getlink/fiJYwzSHDtmQejKnqeZcdbjo/model.txt)) and save it as `./app/model/model.txt`.
+([here](https://syncandshare.lrz.de/getlink/fiD1gABUea7DCGjAidDfSyXq/)) and save it as `./app/model/model.txt`.
 
 ### Optional: Build the pre-processing package
 
